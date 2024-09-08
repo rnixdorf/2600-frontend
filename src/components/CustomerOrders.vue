@@ -1,6 +1,6 @@
 <template>
   <div class="customer-orders" v-if="selectedCustomer">
-    <h2>Subsciptions for {{ selectedCustomer.last }}</h2>
+    <h2>Subscriptions for {{ selectedCustomer.last }}</h2>
     <ul v-if="subscriptions.length > 0">
       <div style="display: inline-block;">
         <li v-for="(subsciption, index) in subscriptions" :key="subsciption.id">
@@ -12,7 +12,7 @@
       </div>
     </ul>
     <span v-else>No subscriptions found</span>
-    <br>
+    <hr>
     <h2>Orders for {{ selectedCustomer.last }}</h2>
     <ul v-if="orders.length > 0">
       <div style="display: inline-block;" class="scrollable-panel">
@@ -37,9 +37,9 @@
               </li>
             </div>
           </ul>
+          <hr>
         </li>
       </div>
-      <hr>
     </ul>
   </div>
   <div class="customer-orders" v-if="!selectedCustomer"></div>
@@ -104,8 +104,9 @@
   
 <style scoped>
   .scrollable-panel {
-    max-height: 350px; /* Adjust as needed */
+    flex-grow: 1; /* Take up remaining space */
     overflow-y: auto;
+    height: calc(100vh - 430px);
   }
   .customer-orders {
     width: 200px;

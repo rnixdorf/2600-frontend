@@ -106,5 +106,19 @@ export const useCustomerStore = defineStore({
     async fetchIncomingOrders(params) {
       return [];
     },
+    async updateCustomerAddress(customerId, data) {
+      console.log("in updateCustomerAddress ", data);
+      this.loading = true
+      let response = null;
+      try {
+        response = await API.updateCustomerAddress(customerId, data)
+      } catch (error) {
+        this.error = error
+        return error;
+      } finally {
+        this.loading = false
+        return response.data;
+      }
+    }
   }
 })

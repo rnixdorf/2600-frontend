@@ -11,6 +11,10 @@ class DataService {
 		return http.post(`/customer/${customerId}`, data);
 	}
 
+	updateCustomerAddress(customerId, data) {
+		return http.post(`/customerAddress/${customerId}`, data);
+	}
+
 	getCustomerOrdersById(customerId) {
 		return http.get(`/customerOrders/${customerId}`);
 	}

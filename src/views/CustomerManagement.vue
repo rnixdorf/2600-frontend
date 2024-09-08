@@ -20,8 +20,21 @@
   </script>
   
   <style scoped>
-  .customer-management {
-    display: flex;
-    flex-wrap:wrap; 
+  html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
   }
+
+  .customer-management {
+  display: flex;
+  /* flex-direction: column; */
+  height: calc(100vh - 175px);
+}
+  /* .customer-management {
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    height: 82vh; 
+  } */
   </style>

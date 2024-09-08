@@ -123,24 +123,41 @@
 </script>
 
 <style scoped>
+
   .scrollable-panel {
-    max-height: 350px; /* Adjust as needed */
+    flex-grow: 1; /* Take up remaining space */
     overflow-y: auto;
+    /* max-height: calc(80vh - 80px); */
   }
-.customer-list {
+
+  .customer-list {
+    width: 200px;
+    background: #f5f5f5;
+    padding: 10px;
+    flex: 1;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+  }
+  /* .scrollable-panel {
+    max-height: 64vh; 
+    overflow-y: auto;
+  } */
+/* .customer-list {
   width: 200px;
   background: #f5f5f5;
   padding: 10px;
   flex: 1;
   font-weight: bold;
-}
+}  */
 .customer-list ul {
   list-style-type: none;
   padding: 0;
+  line-height: 1.2;
 }
 .customer-list li {
   cursor: pointer;
-  padding: 5px;
+  padding: 2px;
 }
 .customer-list li:hover {
   background: #ddd;
@@ -150,10 +167,22 @@
   /* font-size: 1.2em; */
   font-weight: bold;
   width: 5em;
+  margin-left: 20px;
 }
 
 .searchInputs {
   text-align: left;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f5f5f5;
+  /* display: flex; */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  
 }
 .search-field {
   width: 12em;
