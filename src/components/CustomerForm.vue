@@ -7,73 +7,49 @@
 				<Button type="cancel" @click.prevent="onCancel">Cancel</Button>
 			</div>
 			<div>
-				<p class="customer-entry" v-for="(val, k) in customerFieldDisplayOrder" :label=k :key="k">
-					<Label for=val>{{ val.display }}</Label>
-					<div v-if="val.name == 'fk_primary_address_id'" >
-						<div v-for="(address, index) in selectedCustomer.addresses" :key="index">
-							<div v-if="address.id == selectedCustomer.fk_primary_address_id" class="list-item" @click="address.id">
-								<span v-if="address.address1 != ''" id=val.name>{{ address.address1 }}</span>
-								<br v-if="address.address1 != ''">
-								<Label for="addr2" v-if="address.address2 != ''">&nbsp;</Label>
-								<span v-if="address.address2 != ''" id="addr2">{{ address.address2 }}</span>
-								<br v-if="address.address2 != ''">
-								<Label for="addr3" v-if="address.address3 != ''">&nbsp;</Label>
-								<span v-if="address.address3 != ''" id="addr3">{{ address.address3 }}</span>
-								<br v-if="address.address3 != ''">
-								<Label for="csz">&nbsp;</Label>
-								<span id="csz">{{ address.city }}, {{ address.state }} {{ address.zip }}</span>
-								<br>
-								<Label for="csz">&nbsp;</Label>
-								<span id="csz">{{ address.country }}</span>
-								<br>
-								<Label for="phone">Phone:</Label>
-								<span id="phone">{{ address.phone }}</span>
-								<br>
-								<Label for="email">Email:</Label>
-								<span id="email">{{ address.email }}</span>
-								<br>
-							</div>
-						</div>
-						<div style="display: inline-block;">
-							<Button type="btnAddress" v-on:click="btnChangeAddress($event, selectedCustomer.fk_primary_address_id)">Change Address</Button>
-							<Button type="btnAddress" v-on:click="btnNewAddress">New Address</Button>
-						</div>
-					</div>
-					<input v-else-if="inputType[val.name] == 'checkbox'" type="checkbox" id=val.name v-model="selectedCustomer[val.name]" @input="handleInputChange(val.name, $event.target.value)"/>
-					<input v-else-if="inputType[val.name] == 'readonly'" id=val.name v-model="selectedCustomer[val.name]" readonly />
-					<span v-else-if="inputType[val.name] == 'string'" id=val.name>{{ selectedCustomer[val.name] }}</span>
-					<span v-else-if="inputType[val.name] == 'datestring'" id=val.name>{{ new Date(selectedCustomer[val.name]).toLocaleString() }}</span>
-					<span v-else-if="inputType[val.name] == 'hidden'" id=val.name></span>
-					<span class="radio-span" v-else-if="inputType[val.name] == 'subtypeRadio'" id=val.name>
-						<input type="radio" id="typeP" value="P" v-model="selectedCustomer.subtype" />
-						<Label class="radio-label" for="typeP">Print</Label>
-						<input type="radio" id="typeD" value="D" v-model="selectedCustomer.subtype" />
-						<Label class="radio-label" for="typeD">Digital</Label>
-						<input type="radio" id="typeB" value="B" v-model="selectedCustomer.subtype" />
-						<Label class="radio-label" for="typeB">Both</Label>
+				<div class="customer-entry" v-for="(val, k) in customerFieldDisplayOrder" :label=k :id="val.name + 'Label'" :key="k">
+
+					<Label :for="val.name">{{ val.display }}</Label>
+					<input v-if="inputType[val.name] == 'checkbox'" type="checkbox" :id="val.name" v-model="selectedCustomer[val.name]" @input="handleInputChange(val.name, $event.target.value)"/>
+					<input v-else-if="inputType[val.name] == 'readonly'" :id="val.name" v-model="selectedCustomer[val.name]" readonly />
+					<span v-else-if="inputType[val.name] == 'string'" :id="val.name">{{ selectedCustomer[val.name] }}</span>
+					<span v-else-if="inputType[val.name] == 'datestring'" :id="val.name">{{ new Date(selectedCustomer[val.name]).toLocaleString() }}</span>
+					<span v-else-if="inputType[val.name] == 'hidden'" :id="val.name"></span>
+					<span class="radio-span" v-else-if="inputType[val.name] == 'subtypeRadio'" :id="val.name">
+						<input type="radio" :id="val.name + 'P'" value="P" v-model="selectedCustomer.subtype" />
+						<Label class="radio-label" :for="val.name + 'P'">Print</Label>
+						<input type="radio" :id="val.name + 'D'" value="D" v-model="selectedCustomer.subtype" />
+						<Label class="radio-label" :for="val.name + 'D'">Digital</Label>
+						<input type="radio" :id="val.name + 'B'" value="B" v-model="selectedCustomer.subtype" />
+						<Label class="radio-label" :for="val.name + 'B'">Both</Label>
 					</span>
-					<span class="radio-span" v-else-if="inputType[val.name] == 'eformatRadio'" id=val.name>
-						<input type="radio" id="typeNone" value="" v-model="selectedCustomer.eformat" />
-						<Label class="radio-label" for="typeNone">None</Label>
-						<input type="radio" id="typePDF" value="PDF" v-model="selectedCustomer.eformat" />
-						<Label class="radio-label" for="typePDF">PDF</Label>
-						<input type="radio" id="typeEPUB" value="EPUB" v-model="selectedCustomer.eformat" />
-						<Label class="radio-label" for="typeEPUB">EPUB</Label>
+					<span class="radio-span" v-else-if="inputType[val.name] == 'eformatRadio'" :id="val.name">
+						<input type="radio" :id="val.name + 'None'" value="" v-model="selectedCustomer.eformat" />
+						<Label class="radio-label" :for="val.name + 'None'">None</Label>
+						<input type="radio" :id="val.name + 'PDF'" value="PDF" v-model="selectedCustomer.eformat" />
+						<Label class="radio-label" :for="val.name + 'PDF'">PDF</Label>
+						<input type="radio" :id="val.name + 'EPUB'" value="EPUB" v-model="selectedCustomer.eformat" />
+						<Label class="radio-label" :for="val.name + 'EPUB'">EPUB</Label>
 					</span>
 					<v-select 
 						v-else-if="inputType[val.name] == 'agencyDropdown'" 
 						placeholder="" 
-						id="agency_id" 
+						:id="val.name"
 						v-model="customer.fk_agency_id"
 						@update:modelValue="handleInputChange('fk_agency_id', $event)" 
 						:options="distributors" 
 						label="company" 
 						:reduce="(option) => option.id">
 					</v-select>
-					<input v-else id=val.name v-model="selectedCustomer[val.name]" @input="handleInputChange(val.name, $event.target.value)" />
+					<input v-else :id="val.name" data-1p-ignore v-model="selectedCustomer[val.name]" :maxlength="selectedSchema[val.name].size" @input="handleInputChange(val.name, $event.target.value)" />
 					<br v-if="inputType[val.name] != 'hidden'">
 					<br v-if="inputType[val.name] == 'agencyDropdown'">
-				</p>
+					<div v-for="(error, index) of v$.$errors" :key="index">
+						<span v-if="val.name==error.$property" type="error" >{{ error.$message }}</span>
+						<br v-if="val.name==error.$property" >
+					</div>
+					
+				</div>
 				
 			</div>
 			<div style="display: inline-block;">
@@ -114,10 +90,10 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, toRefs } from 'vue';
+import { ref, watch, computed, reactive } from 'vue';
 import DataService from "../services/data-service.js";
 import useValidate from '@vuelidate/core'
-import { required, email, minLength, sameAs } from '@vuelidate/validators'
+import { required, email, maxLength } from '@vuelidate/validators'
 import { useCustomerStore } from '../stores/customer'
 import { storeToRefs } from 'pinia'
 import vSelect from 'vs-vue3-select'
@@ -127,7 +103,7 @@ import { Label } from '@/components/ui/label'
 
 const { distributors } = storeToRefs(useDistributorStore());
 // const distStore = useDistributorStore();
-// const { orders } = storeToRefs(useCustomerStore());
+const { schema } = storeToRefs(useCustomerStore());
 const custStore = useCustomerStore();
 const emit = defineEmits(['select-customer']);
 const props = defineProps({
@@ -141,6 +117,9 @@ const selectedCustomer = ref(null);
 const dialogVisible = ref(false);
 const editAddress = ref({});
 const touchedFields = ref({});
+let selectedSchema = reactive({});
+let v$ = useValidate(null, selectedCustomer)
+let originalCustomer = {};
 
 const inputType = {
 	"name": "string",
@@ -163,37 +142,81 @@ const inputType = {
 
 const customerFieldDisplayOrder = [
 	{name:"id",display:"Record Num:"},
-	{name:"name",display:"Name:"},
-	{name:"fk_primary_address_id",display:"Address:"},
+	{name:"first",display:"First:"},
+	{name:"last",display:"Last:"},
+	{name:"company",display:"Company:"},
+	{name:"address1",display:"Address1:"},
+	{name:"address2",display:"Address2:"},
+	{name:"address3",display:"Address3:"},
+	{name:"city",display:"City:"},
+	{name:"state",display:"State:"},
+	{name:"zip",display:"Zip:"},
+	{name:"country",display:"Country:"},
+	{name:"phone",display:"Phone:"},
+	{name:"email",display:"Email:"},
 	{name:"fk_agency_id",display:"Agency:"},
 	{name:"agency_ref",display:"Agency Ref:"},
 	{name:"order_nums",display:"Order Nums:"},
 	{name:"sample",display:"Sample?"},
+	{name:"corporate",display:"Corporate?"},
 	// {name:"envelope",display:"Envelope?"},
 	{name:"create_date",display:"Date Created:"},
 	{name:"update_date",display:"Last Updated:"},
 ]
 
-const rules = computed(() => {
-	return {
-		First: { required },
-		Last: { required },
-		Email: { required, email },
-		Subtype: { required },
+let addressChangeTrigger = {
+	"address1": "address1",
+	"address2": "address2",
+	"address3": "address3",
+	"city": "city",
+	"state": "state",
+	"zip": "zip",
+	"country": "country",
+};
+
+watch(schema, (newVal) => {
+    if (newVal) {
+		selectedSchema = { ...newVal };
+		v$ = useValidate(rules, selectedCustomer)
+		// console.log("schema newVal3: ", selectedSchema);
+    }
+  }, { deep: true });
+
+let rules = computed(() => {
+	// console.log("rules main:", selectedSchema.first.size);
+	let rtn = {
+		first: { required }, //, maxLength: maxLength(selectedSchema.first.size) },
+		last: { required }, //, maxLength: maxLength(selectedSchema.first.size) },
+		email: { required, email },
+		zip: { required },
+		country: { required },
 	}
+	return rtn;
 })
-const v$ = useValidate(rules, selectedCustomer)
 
 const isFormValid = async () => {
 	const result = await v$.value.$validate();
+	console.log("isFormValid", result);
 	return result;
 }
 
 watch(
 	() => props.customer,
-	(newVal) => {
+	async (newVal) => {
 		if (newVal) {
 			selectedCustomer.value = { ...newVal }; // Shallow copy to avoid direct mutation
+			Object.keys(addressChangeTrigger).forEach(key => {
+				addressChangeTrigger[key] = selectedCustomer.value[key];
+			});
+			originalCustomer = { ...newVal };
+			// Object.keys(touchedFields.value).reduce((acc, key) => {
+            // acc[key] = selectedCustomer.value[key];
+			// if( addressChangeTrigger[key] ) {
+			// 	isAddressChange = true;
+			// }
+        //     return acc;
+        // }, {});
+			await v$.value.$validate()
 		}
 	}
 );
@@ -202,6 +225,7 @@ const onCancel = () => {
 	selectedCustomer.value = null;
 	// reset customerorders component
 	custStore.orders = [];
+	touchedFields.value = {};
 	emit('select-customer', null);
 };
 
@@ -247,27 +271,68 @@ const saveAddress = async () => {
 const updateCustomer = async () => {
 	console.log("Update Customer");
 	// Add update logic here
+	console.log("original", originalCustomer);
+	
 	const result = await v$.value.$validate()
-
-	// if (!result) {
-	// 	alert(`Form failed validation\n\n${v$.value.$errors[0].$propertyPath} ${v$.value.$errors[0].$message}`);
-	// } else {
-	if(true) {
+	console.log("updateCustomer validate", result);
+	let isAddressChange = false;
+	if (!result) {
+		console.log(`Form failed validation\n\n${v$.value.$errors[0].$propertyPath.toLocaleUpperCase()} ${v$.value.$errors[0].$message}`);
+	} else {
+	// if(true) {
 		const updatedFields = Object.keys(touchedFields.value).reduce((acc, key) => {
             acc[key] = selectedCustomer.value[key];
+			console.log("addressChangeTrigger[key]", addressChangeTrigger[key]);
+			console.log("selectedCustomer.value[key]", selectedCustomer.value[key]);
+			console.log("key", key);
+			if( addressChangeTrigger.hasOwnProperty(key) && addressChangeTrigger[key] != selectedCustomer.value[key] ) {
+				isAddressChange = true;
+			}
             return acc;
         }, {});
+		console.log("addressChangeTrigger", addressChangeTrigger);
+		if( Object.keys(updatedFields).length == 0) {
+			console.log("No fields updated");
+			return;
+		}
 		console.log("Updated Fields", updatedFields);
-		// DataService.updateCustomer(selectedCustomer.value.id, selectedCustomer)
-		// .then(response => {
-		// 	console.log(response.data);
-		// 	alert(`Customer ${selectedCustomer.value.name} updated!`);
-		// 	selectedCustomer.value = null;
-		// })
-		// .catch(e => {
-		// 	console.log(e);
-		// 	alert(`Error updating customer ${selectedCustomer.value.name}`);
-		// });
+		console.log("isAddressChange", isAddressChange);
+		if(isAddressChange) {
+			if(confirm("Is this an address change?", "Address Change")) {
+				console.log("Address Change");
+				let updateAddr = {
+					first: originalCustomer.first,
+					last: originalCustomer.last,
+					address1: originalCustomer.address1,
+					address2: originalCustomer.address2,
+					address3: originalCustomer.address3,
+					city: originalCustomer.city,
+					state: originalCustomer.state,
+					zip: originalCustomer.zip,
+					country: originalCustomer.country,
+					phone: originalCustomer.phone,
+					email: originalCustomer.email,
+				}
+				try {
+					let resp = await DataService.updateCustomerAddress(selectedCustomer.value.id, updateAddr);
+					console.log("stored previous address:",resp);
+				} catch(e) {
+					console.log(e);
+					alert(`Error updating address`);
+				}
+			}
+		}
+		DataService.updateCustomer(selectedCustomer.value.id, selectedCustomer.value)
+		.then(response => {
+			console.log(response.data);
+			alert(`Customer ${selectedCustomer.value.name} updated!`);
+			custStore.fetchCustomers();
+			onCancel();
+		})
+		.catch(e => {
+			console.log(e);
+			alert(`Error updating customer ${selectedCustomer.value.name}`);
+		});
 	}
 };
 
@@ -278,7 +343,7 @@ const handleInputChange = (field, value) => {
 	} else if(value == "off") {
 		value = false;
 	}
-	console.log("handleInputChange", field, value);
+	// console.log("handleInputChange", field, value);
     selectedCustomer.value[field] = value;
     touchedFields.value[field] = true;
 };
@@ -336,7 +401,7 @@ const handleInputChange = (field, value) => {
   }
 
 .customer-form {
-	width: 200px;
+	/* width: 200px; */
 	padding: 10px;
 	flex: 1.5;
 	font-weight: bold;
@@ -347,9 +412,9 @@ const handleInputChange = (field, value) => {
 	flex-direction: column;
 }
 
-.customer-form form div {
+/* .customer-form form div {
 	margin-bottom: 10px;
-}
+} */
 
 .customer-form form div button {
 	margin-top: 10px;
@@ -386,19 +451,18 @@ const handleInputChange = (field, value) => {
 	/* display: inline-block; */
 	float: left;
 	margin-left: 1em;
-	width: 70%;
+	width: calc(100% - 11em);  /*75%;*/
+	font-weight: bold;
 }
 
-
 .v-select {
-	margin: 0 0 5px 12px;
+	margin: 0 0 0 12px;
 	/* text-transform: capitalize; */
 	float: left;
 	text-align: right;
-	width: 75%;
-	height: 2em;
+	width: calc(100% - 8.5em); 
+	height: 1em;
 }
-
 
 .customer-entry {
 	margin: 5px 0 5px 0;
@@ -444,5 +508,14 @@ const handleInputChange = (field, value) => {
 .list-item {
 	cursor: pointer;
 	padding: 5px;
+}
+
+.customer-entry span[type="error"] {
+  color: red;
+  /* line-height: 0px; */
+  display: flex;
+  /* float: center; */
+  height: 2em;
+  margin-left: 10em;
 }
 </style>

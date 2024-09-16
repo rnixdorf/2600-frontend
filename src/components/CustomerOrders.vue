@@ -67,11 +67,11 @@
   watch(
     () => props.customer,
     async (newVal) => {
-      console.log("o newVal: ", newVal);
+      // console.log("o newVal: ", newVal);
       if (newVal) {
         selectedCustomer.value = { ...newVal };
         // fetchOrders(newVal.id);
-        console.log("newval.id: ", newVal.id)
+        // console.log("newval.id: ", newVal.id)
         const success = await custStore.getCustomerOrdersById(newVal.id);
         if (!success) {
           alert("Ups, something happened 🙂", error.message);
@@ -88,9 +88,9 @@
   );
   
   watch(orders, (newVal) => {
-    console.log("order newVal: ", newVal);
-    console.log("order newVal.length: ", newVal.length);
-    console.log("state.previousOrderNum: ", state.previousOrderNum);
+    // console.log("order newVal: ", newVal);
+    // console.log("order newVal.length: ", newVal.length);
+    // console.log("state.previousOrderNum: ", state.previousOrderNum);
     if (newVal.length > 0) {
       state.previousOrderNum = newVal[0].order_num;
     }

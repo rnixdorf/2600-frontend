@@ -17,6 +17,7 @@ export const useCustomerStore = defineStore({
     incoming_order: null,
     subscriptions: [],
     subscription: null,
+    schema: null
   }),
   getters: {
     getCustomerById: (state) => {
@@ -25,6 +26,9 @@ export const useCustomerStore = defineStore({
     getCustomerByLast: (state) => {
       return (customers) => {state.customers.find((customer) => {customer.Last.includes(last_name) || customer.First.includes(last_name)})}
     },
+    getSchema: (state) => {
+      return state.schema
+    } 
   }, 
   setter: {
     setLastName: (val) => {last_name = val}
@@ -34,14 +38,18 @@ export const useCustomerStore = defineStore({
       this.customers = [];
       this.loading = true;
       this.error = null;
+      this.schema = null;
       console.log("in fetchCustomers params:", params)
       try {
         
         this.customers = await API.getAllCustomers(params)
         .then((response) => {
+          
           return response.data
         })
         .catch((error) => {this.error = error; return null});
+        // console.log("schema: ", this.customers[0].schema)
+        this.schema = this.customers[0].schema;
         // this.filtered_customers = this.customers;
       } catch (error) {
         console.log("catch error: ",error)
@@ -58,8 +66,10 @@ export const useCustomerStore = defineStore({
       try {
         this.customer = await API.getCustomerById(id)
         .then((response) => {
+          this.schema = response.data.schema;
           return response.data
         })
+        
       } catch (error) {
         this.error = error
       } finally {

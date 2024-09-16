@@ -31,7 +31,7 @@
     </div>
     <p v-if="loading">Loading customers...</p>
     <p v-if="error">{{ error.message }}</p>
-    <div v-if="customers" class="scrollable-panel">
+    <div v-if="customers.length" class="scrollable-panel">
       <ul>
         <li v-for="customer in customers" :key="customer.id" @click="selectCustomer(customer)">
           {{ customer.first }} {{ customer.last }}<br>
@@ -62,6 +62,7 @@
   const { customers, loading, error } = storeToRefs(useCustomerStore());
   // const { distributors } = storeToRefs(useDistributorStore());
   const custStore = useCustomerStore();
+  const { fetchCustomers } = custStore;
   const distStore = useDistributorStore();
   const params = ref({last_name: '', zip: '', name: ''});
 
@@ -71,16 +72,25 @@
   };
 
   onMounted(async () => {
-    const success = await custStore.fetchCustomers({});
-    if (!success) {
-      alert("Ups, something happened 🙂", error.message);
-      console.log("Api status ->", error.message);
+    loading.value = true;
+    try {
+      await fetchCustomers();
+      customers.value = custStore.customers;
+    } catch (err) {
+      error.value = err;
+    } finally {
+      loading.value = false;
     }
-    const success2 = await distStore.fetchDistributors({});
-    if (!success2) {
-      alert("Ups, something happened distStore 🙂", error.message);
-      console.log("Api status ->", error.message);
-    }
+    // const success = await custStore.fetchCustomers({});
+    // if (!success) {
+    //   alert("Ups, something happened 🙂", error.message);
+    //   console.log("Api status ->", error.message);
+    // }
+    // const success2 = await distStore.fetchDistributors({});
+    // if (!success2) {
+    //   alert("Ups, something happened distStore 🙂", error.message);
+    //   console.log("Api status ->", error.message);
+    // }
   });
   
   const lastFilter = computed({
@@ -185,6 +195,6 @@
   
 }
 .search-field {
-  width: 12em;
+  width: calc(100% - 9em);
 }
 </style>
