@@ -19,6 +19,10 @@ class DataService {
 		return http.get(`/customerOrders/${customerId}`);
 	}
 
+	getZipCount(zip) {
+		return http.get(`/zipCount/${zip}`);
+	}
+
 	updateDbWithIncomingOrders() {
 		return http.get(`/updateDbWithIncomingOrders`);
 	}

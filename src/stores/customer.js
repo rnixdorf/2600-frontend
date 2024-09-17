@@ -28,7 +28,8 @@ export const useCustomerStore = defineStore({
     },
     getSchema: (state) => {
       return state.schema
-    } 
+    },
+    
   }, 
   setter: {
     setLastName: (val) => {last_name = val}
@@ -49,7 +50,11 @@ export const useCustomerStore = defineStore({
         })
         .catch((error) => {this.error = error; return null});
         // console.log("schema: ", this.customers[0].schema)
-        this.schema = this.customers[0].schema;
+        if(this.customers.length > 0)
+          this.schema = this.customers[0].schema;
+        else
+          this.schema = null;
+
         // this.filtered_customers = this.customers;
       } catch (error) {
         console.log("catch error: ",error)
@@ -129,6 +134,63 @@ export const useCustomerStore = defineStore({
         this.loading = false
         return response.data;
       }
-    }
+    },
+    getSubCode(type) {
+      let dt = new Date();
+      let year = dt.getFullYear();
+      let month = dt.getMonth() + 1;
+      let sub1 = '';
+      switch(month) {
+        case 1:
+          sub1 = 'J';
+          break;
+        case 2:
+          sub1 = 'F';
+          break;
+        case 3:
+          sub1 = 'M';
+          break;
+        case 4:
+          sub1 = 'A';
+          break;
+        case 5:
+          sub1 = 'Y';
+          break;
+        case 6:
+          sub1 = 'U';
+          break;
+        case 7:
+          sub1 = 'L';
+          break;
+        case 8:
+          sub1 = 'G';
+          break;
+        case 9:
+          sub1 = 'S';
+          break;
+        case 10:
+          sub1 = 'O';
+          break;
+        case 11:
+          sub1 = 'N';
+          break;
+        case 12:
+          sub1 = 'D';
+          break;
+        default:
+          sub1 = 'X';
+          break;
+      }
+
+      let yr = (year - 1995 + 2) % 36;
+      let yrc = '';
+      if( yr > 26 ) {
+        yrc = (yr - 26).toString();
+      }
+      else
+        yrc = (yr+9).toString(36).toUpperCase();
+      let ret = sub1 + yrc + type;
+      return ret;
+    },
   }
 })

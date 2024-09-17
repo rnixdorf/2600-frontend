@@ -41,6 +41,7 @@
         </li>
       </div>
     </ul>
+    <span v-else>No Orders found</span>
   </div>
   <div class="customer-orders" v-if="!selectedCustomer"></div>
 </template>

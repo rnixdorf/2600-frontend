@@ -45,8 +45,7 @@
 					<br v-if="inputType[val.name] != 'hidden'">
 					<br v-if="inputType[val.name] == 'agencyDropdown'">
 					<div v-for="(error, index) of v$.$errors" :key="index">
-						<span v-if="val.name==error.$property" type="error" >{{ error.$message }}</span>
-						<br v-if="val.name==error.$property" >
+						<p v-if="val.name==error.$property" type="error" >{{ error.$message }}</p>
 					</div>
 					
 				</div>
@@ -105,7 +104,7 @@ const { distributors } = storeToRefs(useDistributorStore());
 // const distStore = useDistributorStore();
 const { schema } = storeToRefs(useCustomerStore());
 const custStore = useCustomerStore();
-const emit = defineEmits(['select-customer']);
+const emit = defineEmits(['select-customer','new-customer']);
 const props = defineProps({
 	customer: {
 		type: Object,
@@ -138,6 +137,8 @@ const inputType = {
 	"addresses": "hidden",
 	"fk_primary_address_id": "string",
 	"fk_agency_id": "agencyDropdown",
+	"sub_code": "string",
+	"coding": "string",
 }
 
 const customerFieldDisplayOrder = [
@@ -154,12 +155,13 @@ const customerFieldDisplayOrder = [
 	{name:"country",display:"Country:"},
 	{name:"phone",display:"Phone:"},
 	{name:"email",display:"Email:"},
+	{name:"sub_code",display:"Sub Code:"},
+	{name:"coding",display:"Coding:"},
 	{name:"fk_agency_id",display:"Agency:"},
 	{name:"agency_ref",display:"Agency Ref:"},
 	{name:"order_nums",display:"Order Nums:"},
 	{name:"sample",display:"Sample?"},
 	{name:"corporate",display:"Corporate?"},
-	// {name:"envelope",display:"Envelope?"},
 	{name:"create_date",display:"Date Created:"},
 	{name:"update_date",display:"Last Updated:"},
 ]
@@ -185,10 +187,10 @@ watch(schema, (newVal) => {
 let rules = computed(() => {
 	// console.log("rules main:", selectedSchema.first.size);
 	let rtn = {
-		first: { required }, //, maxLength: maxLength(selectedSchema.first.size) },
+		// first: { required }, //, maxLength: maxLength(selectedSchema.first.size) },
 		last: { required }, //, maxLength: maxLength(selectedSchema.first.size) },
-		email: { required, email },
-		zip: { required },
+		// email: { required, email },
+		// zip: { required },
 		country: { required },
 	}
 	return rtn;
@@ -216,7 +218,7 @@ watch(
 			// }
         //     return acc;
         // }, {});
-			await v$.value.$validate()
+			//await v$.value.$validate()
 		}
 	}
 );
@@ -280,12 +282,14 @@ const updateCustomer = async () => {
 		console.log(`Form failed validation\n\n${v$.value.$errors[0].$propertyPath.toLocaleUpperCase()} ${v$.value.$errors[0].$message}`);
 	} else {
 	// if(true) {
+	
 		const updatedFields = Object.keys(touchedFields.value).reduce((acc, key) => {
             acc[key] = selectedCustomer.value[key];
-			console.log("addressChangeTrigger[key]", addressChangeTrigger[key]);
-			console.log("selectedCustomer.value[key]", selectedCustomer.value[key]);
+			// console.log("addressChangeTrigger[key]", addressChangeTrigger[key]);
+			// console.log("selectedCustomer.value[key]", selectedCustomer.value[key]);
 			console.log("key", key);
-			if( addressChangeTrigger.hasOwnProperty(key) && addressChangeTrigger[key] != selectedCustomer.value[key] ) {
+			console.log("id", selectedCustomer.value.id);
+			if( addressChangeTrigger.hasOwnProperty(key) && addressChangeTrigger[key] != selectedCustomer.value[key] && selectedCustomer.value.hasOwnProperty("id") && selectedCustomer.value.id != "undefined") {
 				isAddressChange = true;
 			}
             return acc;
@@ -322,6 +326,13 @@ const updateCustomer = async () => {
 				}
 			}
 		}
+		if( selectedCustomer.value.first === undefined )
+			selectedCustomer.value.first = "";
+		selectedCustomer.value.name = (selectedCustomer.value.first + " ").trim() + selectedCustomer.value.last;
+		selectedCustomer.value.country = (selectedCustomer.value.country).toUpperCase();
+		let z = parseInt(selectedCustomer.value.zip.toString().substr(0,3),10);
+		let zcount = await DataService.getZipCount(z);
+		console.log("zcount", zcount);
 		DataService.updateCustomer(selectedCustomer.value.id, selectedCustomer.value)
 		.then(response => {
 			console.log(response.data);
@@ -451,7 +462,7 @@ const handleInputChange = (field, value) => {
 	/* display: inline-block; */
 	float: left;
 	margin-left: 1em;
-	width: calc(100% - 11em);  /*75%;*/
+	width: calc(100% - 12em);  /*75%;*/
 	font-weight: bold;
 }
 
@@ -460,8 +471,12 @@ const handleInputChange = (field, value) => {
 	/* text-transform: capitalize; */
 	float: left;
 	text-align: right;
-	width: calc(100% - 8.5em); 
+	width: calc(100% - 9.5em); 
 	height: 1em;
+}
+
+.v-text-field.v-text-field--solo .v-input__control{
+    min-height: 5px;
 }
 
 .customer-entry {
@@ -510,12 +525,13 @@ const handleInputChange = (field, value) => {
 	padding: 5px;
 }
 
-.customer-entry span[type="error"] {
+.customer-entry p[type="error"] {
   color: red;
-  /* line-height: 0px; */
+  line-height: 0px;
   display: flex;
   /* float: center; */
-  height: 2em;
+  /* height: 1em; */
+  width: 100%;
   margin-left: 10em;
 }
 </style>

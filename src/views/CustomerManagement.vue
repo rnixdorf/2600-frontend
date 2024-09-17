@@ -1,6 +1,6 @@
 <template>
     <div class="customer-management">
-      <CustomerList @select-customer="handleSelectCustomer" />
+      <CustomerList @select-customer="handleSelectCustomer" @new-customer="handleNewCustomer"/>
       <CustomerForm :customer="selectedCustomer" @select-customer="handleSelectCustomer"/>
       <CustomerOrders :customer="selectedCustomer" />
     </div>
@@ -17,6 +17,11 @@
   const handleSelectCustomer = (customer) => {
     selectedCustomer.value = customer;
   };
+
+  const handleNewCustomer = (customer) => {
+    selectedCustomer.value = {};
+  };
+
   </script>
   
   <style scoped>

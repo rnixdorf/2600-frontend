@@ -28,6 +28,9 @@
             placeholder="Search Company" 
             v-model="companyFilter"
         />
+        <br>
+        <button @click="lastFilter = '';zipFilter='';companyFilter=''">Clear Search</button>
+        <button @click="listDialogVisible = true">New Customer</button>
     </div>
     <p v-if="loading">Loading customers...</p>
     <p v-if="error">{{ error.message }}</p>
@@ -47,6 +50,20 @@
         </li>
       </ul>
     </div>
+    <div v-else>
+      <p>No customers found</p>
+    </div>
+    <div v-if="listDialogVisible" class="modal-backdrop">
+      <dialog class="my-dialog" open>
+        <h2>New Customer</h2>
+        <!-- <form @submit.prevent="newCustomer"> -->
+          <Button type="submit" @click="newCustomer('S');listDialogVisible = false">Subscription</Button>
+          <Button type="submit" @click="newCustomer('B');listDialogVisible = false">Back Issue</Button>
+          <Button type="submit" @click="newCustomer('I');listDialogVisible = false">Info</Button>
+          <Button type="button" @click="listDialogVisible = false">Cancel</Button>
+        <!-- </form> -->
+      </dialog>
+	  </div>
   </div>
 </template>
 
@@ -56,8 +73,9 @@
   import { storeToRefs } from 'pinia'
   import { useCustomerStore } from '../stores/customer'
   import { useDistributorStore } from '../stores/distributors'
-
-  const emit = defineEmits(['select-customer']);
+  import { Button } from '@/components/ui/button'
+  
+  const emit = defineEmits(['select-customer','new-customer']);
 
   const { customers, loading, error } = storeToRefs(useCustomerStore());
   // const { distributors } = storeToRefs(useDistributorStore());
@@ -69,6 +87,15 @@
 
   const selectCustomer = (customer) => {
     emit('select-customer', customer);
+  };
+
+  const listDialogVisible = ref(false);
+  const newType = ref('');
+
+  const newCustomer = (type) => {
+    console.log("newCustomer ", type);
+    let cd = custStore.getSubCode(type);
+    emit('select-customer', { sub_code: cd });
   };
 
   onMounted(async () => {
@@ -86,11 +113,11 @@
     //   alert("Ups, something happened 🙂", error.message);
     //   console.log("Api status ->", error.message);
     // }
-    // const success2 = await distStore.fetchDistributors({});
-    // if (!success2) {
-    //   alert("Ups, something happened distStore 🙂", error.message);
-    //   console.log("Api status ->", error.message);
-    // }
+    const success2 = await distStore.fetchDistributors({});
+    if (!success2) {
+      alert("Ups, something happened distStore 🙂", error.message);
+      console.log("Api status ->", error.message);
+    }
   });
   
   const lastFilter = computed({
@@ -134,6 +161,28 @@
 
 <style scoped>
 
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .my-dialog {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 650px;
+    width: 100%;
+  }
+
   .scrollable-panel {
     flex-grow: 1; /* Take up remaining space */
     overflow-y: auto;
@@ -172,6 +221,17 @@
 .customer-list li:hover {
   background: #ddd;
 }
+
+.customer-list button {
+	background-color: gray;
+  margin-top: 10px;
+  margin-left: 40px;
+	width: 120px;
+	align-self: center;
+	height: 30px;
+	padding: 0;
+}
+
 .searchLabel {
   display: inline-block;
   /* font-size: 1.2em; */
