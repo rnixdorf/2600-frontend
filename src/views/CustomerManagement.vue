@@ -34,7 +34,7 @@
   .customer-management {
   display: flex;
   /* flex-direction: column; */
-  height: calc(100vh - 175px);
+  height: calc(100vh - 125px);
 }
   /* .customer-management {
     display: flex;

@@ -17,6 +17,8 @@ export const useCustomerStore = defineStore({
     incoming_order: null,
     subscriptions: [],
     subscription: null,
+    sub_types: [],
+    sub_type: null,
     schema: null
   }),
   getters: {
@@ -35,6 +37,24 @@ export const useCustomerStore = defineStore({
     setLastName: (val) => {last_name = val}
   },
   actions: {
+    async fetchSubTypes() {
+      this.sub_types = [];
+      this.loading = true;
+      this.error = null;
+      try {
+        this.sub_types = await API.getSubscriptionTypes()
+        .then((response) => {
+          return response.data
+        })
+        .catch((error) => {this.error = error; return null});
+      } catch (error) {
+        this.error = error
+        return false;
+      } finally {
+        this.loading = false
+        return true;
+      }
+    },
     async fetchCustomers(params) {
       this.customers = [];
       this.loading = true;
@@ -63,6 +83,23 @@ export const useCustomerStore = defineStore({
       } finally {
         this.loading = false
         return true;
+      }
+    },
+    async updateCustomer(id, updatedFields) {
+      try {
+        const response = await API.updateCustomer(id, updatedFields);
+        const updatedCustomer = response.data;
+
+        // Update the customer in the local state
+        const index = this.customers.findIndex(customer => customer.id === id);
+        if (index !== -1) {
+          this.customers[index] = { ...this.customers[index], ...updatedFields };
+        }
+
+        return updatedCustomer;
+      } catch (error) {
+        console.error('Failed to update customer:', error);
+        throw error;
       }
     },
     async fetchCustomer(id) {
@@ -111,7 +148,7 @@ export const useCustomerStore = defineStore({
           return response.data
         })
       } catch (error) {
-        this.error = error
+        this.error = error;
         return false;
       } finally {
         this.loading = false
@@ -126,13 +163,30 @@ export const useCustomerStore = defineStore({
       this.loading = true
       let response = null;
       try {
-        response = await API.updateCustomerAddress(customerId, data)
+        let addrChange = {
+          first: data.first,
+          last: data.last,
+          company: data.company,
+          phone: data.phone,
+          email: data.email,
+          address1: data.address1,
+          address2: data.address2,
+          address3: data.address3,
+          city: data.city,
+          state: data.state,
+          zip: data.zip,
+          country: data.country,
+        }
+        if( data.hasOwnProperty('address_change') )
+          addrChange.address_change = data.address_change;
+
+        response = await API.updateCustomerAddress(customerId, addrChange)
+        return response.data;
       } catch (error) {
-        this.error = error
+        this.error = error;
         return error;
       } finally {
-        this.loading = false
-        return response.data;
+        this.loading = false;
       }
     },
     getSubCode(type) {

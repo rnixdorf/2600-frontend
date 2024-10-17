@@ -1,6 +1,7 @@
 import http from "./http-common";
 
 class DataService {
+	/********Customers********************************************** */
 	getAllCustomers(params) {
 		return http.post("/customers", params);
 	}
@@ -15,6 +16,11 @@ class DataService {
 		return http.post(`/customerAddress/${customerId}`, data);
 	}
 
+	/********Orders********************************************** */
+	getSubscriptionTypes() {
+		return http.get("/subscriptionTypes");
+	}
+	
 	getCustomerOrdersById(customerId) {
 		return http.get(`/customerOrders/${customerId}`);
 	}
@@ -31,16 +37,21 @@ class DataService {
 		return http.get(`/order/${orderId}`);
 	}
 
+	/********Distributors********************************************** */
 	getAllDistributors() {
 		return http.get("/distributors");
 	}
 
+	/********Subscriptions********************************************** */
 	getCustomerSubscriptionsById(customerId) {
 		return http.get(`/customerSubscriptions/${customerId}`);
 	}
 
+	updateSubscription(subscriptionId, data) {
+		return http.post(`/customerSubscriptions/${subscriptionId}`, data);
+	}
 
-
+	/********HOPE********************************************** */
 	getAllHopeTickets(type_id) {
 		return http.get(`/hopeTickets/${type_id}`);
 	}

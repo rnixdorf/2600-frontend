@@ -57,10 +57,11 @@
       <dialog class="my-dialog" open>
         <h2>New Customer</h2>
         <!-- <form @submit.prevent="newCustomer"> -->
-          <Button type="submit" @click="newCustomer('S');listDialogVisible = false">Subscription</Button>
-          <Button type="submit" @click="newCustomer('B');listDialogVisible = false">Back Issue</Button>
-          <Button type="submit" @click="newCustomer('I');listDialogVisible = false">Info</Button>
-          <Button type="button" @click="listDialogVisible = false">Cancel</Button>
+          <button type="submit" @click="newCustomer('S');listDialogVisible = false">Subscription</button>
+          <button type="submit" @click="newCustomer('B');listDialogVisible = false">Back Issue</button>
+          <button type="submit" @click="newCustomer('M');listDialogVisible = false">Merchandise</button>
+          <button type="submit" @click="newCustomer('I');listDialogVisible = false">Info</button>
+          <button type="button" @click="listDialogVisible = false">Cancel</button>
         <!-- </form> -->
       </dialog>
 	  </div>
@@ -68,19 +69,19 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, reactive } from 'vue';
+  import { ref, onMounted, computed, reactive, onUnmounted } from 'vue';
   //import { RouterLink, useRoute } from 'vue-router'
   import { storeToRefs } from 'pinia'
   import { useCustomerStore } from '../stores/customer'
   import { useDistributorStore } from '../stores/distributors'
-  import { Button } from '@/components/ui/button'
+  // import { Button } from '@/components/ui/button'
   
   const emit = defineEmits(['select-customer','new-customer']);
 
   const { customers, loading, error } = storeToRefs(useCustomerStore());
   // const { distributors } = storeToRefs(useDistributorStore());
   const custStore = useCustomerStore();
-  const { fetchCustomers } = custStore;
+  const { fetchCustomers, fetchSubTypes } = custStore;
   const distStore = useDistributorStore();
   const params = ref({last_name: '', zip: '', name: ''});
 
@@ -98,16 +99,27 @@
     emit('select-customer', { sub_code: cd });
   };
 
+  const _keyListener = function(e) {
+    console.log(e.key);
+    if ( e.key === "n" || e.key === "N" ) {
+        e.preventDefault(); // present "Save Page" from getting triggered.
+
+        listDialogVisible.value = true
+    }
+  };
+
   onMounted(async () => {
     loading.value = true;
     try {
       await fetchCustomers();
       customers.value = custStore.customers;
+      await fetchSubTypes();
     } catch (err) {
       error.value = err;
     } finally {
       loading.value = false;
     }
+
     // const success = await custStore.fetchCustomers({});
     // if (!success) {
     //   alert("Ups, something happened 🙂", error.message);
@@ -118,8 +130,14 @@
       alert("Ups, something happened distStore 🙂", error.message);
       console.log("Api status ->", error.message);
     }
+    
+    // window.addEventListener('keydown', _keyListener);
   });
-  
+
+  onUnmounted(() => {
+    // window.removeEventListener('keydown', _keyListener);
+  });
+
   const lastFilter = computed({
     get() {
       console.log("in last getter");
@@ -186,13 +204,14 @@
   .scrollable-panel {
     flex-grow: 1; /* Take up remaining space */
     overflow-y: auto;
+    /* height: calc(100vh - 180px); */
     /* max-height: calc(80vh - 80px); */
   }
 
   .customer-list {
     width: 200px;
     background: #f5f5f5;
-    padding: 10px;
+    /* padding-bottom: 10px; */
     flex: 1;
     font-weight: bold;
     display: flex;
@@ -209,27 +228,34 @@
   flex: 1;
   font-weight: bold;
 }  */
+
+.customer-list h2 {
+  line-height: .5;
+}
+
 .customer-list ul {
   list-style-type: none;
   padding: 0;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 .customer-list li {
   cursor: pointer;
-  padding: 2px;
+  font-size: .9em;
+  /* padding: 2px; */
 }
 .customer-list li:hover {
   background: #ddd;
 }
 
 .customer-list button {
-	background-color: gray;
+	background-color: lightgray;
   margin-top: 10px;
-  margin-left: 40px;
+  margin-left: 20px;
 	width: 120px;
 	align-self: center;
 	height: 30px;
 	padding: 0;
+  color: black;
 }
 
 .searchLabel {

@@ -41,6 +41,8 @@ html, body {
 h1 {
   text-align: center;
   margin-bottom: 0em;
+  margin-top: 10px;
+  line-height: .5;
 }
 
 .menubar {

@@ -72,13 +72,13 @@ onMounted(async () => {
   console.log("mounted customer: ",customer);
 })
 
-onBeforeUnmount(() => {
-  console.log("before unmount");
-})
+// onBeforeUnmount(() => {
+//   console.log("before unmount");
+// })
 
-onUpdated(() => {
-  console.log("updated");
-})
+// onUpdated(() => {
+//   console.log("updated");
+// })
 
 
 </script>

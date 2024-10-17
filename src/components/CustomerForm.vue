@@ -211,57 +211,48 @@ watch(
 				addressChangeTrigger[key] = selectedCustomer.value[key];
 			});
 			originalCustomer = { ...newVal };
-			// Object.keys(touchedFields.value).reduce((acc, key) => {
-            // acc[key] = selectedCustomer.value[key];
-			// if( addressChangeTrigger[key] ) {
-			// 	isAddressChange = true;
-			// }
-        //     return acc;
-        // }, {});
-			//await v$.value.$validate()
 		}
 	}
 );
 
 const onCancel = () => {
 	selectedCustomer.value = null;
-	// reset customerorders component
 	custStore.orders = [];
 	touchedFields.value = {};
 	emit('select-customer', null);
 };
 
-let btnChangeAddress = (e, id) => {
-	e.preventDefault();
-	console.log("Change Address", id);
-	for (let i = 0; i < selectedCustomer.value.addresses.length; i++) {
-		if (selectedCustomer.value.addresses[i].id == id) {
-			editAddress.value = selectedCustomer.value.addresses[i];
-			break;
-		}
-	}
-    dialogVisible.value = true;
-};
+// let btnChangeAddress = (e, id) => {
+// 	e.preventDefault();
+// 	console.log("Change Address", id);
+// 	for (let i = 0; i < selectedCustomer.value.addresses.length; i++) {
+// 		if (selectedCustomer.value.addresses[i].id == id) {
+// 			editAddress.value = selectedCustomer.value.addresses[i];
+// 			break;
+// 		}
+// 	}
+//     dialogVisible.value = true;
+// };
 
-const btnNewAddress = (e) => {
-	e.preventDefault();
-	console.log("New Address ",selectedCustomer.value.id);
-	editAddress.value = {
-		first: selectedCustomer.value.first,
-		last: selectedCustomer.value.last,
-		company: selectedCustomer.value.company,
-		phone: selectedCustomer.value.phone,
-		email: selectedCustomer.value.email,
-		address1: "",
-		address2: "",
-		address3: "",
-		city: "",
-		state: "",
-		zip: "",
-		country: "",
-	}
-	dialogVisible.value = true;
-};
+// const btnNewAddress = (e) => {
+// 	e.preventDefault();
+// 	console.log("New Address ",selectedCustomer.value.id);
+// 	editAddress.value = {
+// 		first: selectedCustomer.value.first,
+// 		last: selectedCustomer.value.last,
+// 		company: selectedCustomer.value.company,
+// 		phone: selectedCustomer.value.phone,
+// 		email: selectedCustomer.value.email,
+// 		address1: "",
+// 		address2: "",
+// 		address3: "",
+// 		city: "",
+// 		state: "",
+// 		zip: "",
+// 		country: "",
+// 	}
+// 	dialogVisible.value = true;
+// };
 
 const saveAddress = async () => {
 	// Replace with actual API call
@@ -282,13 +273,33 @@ const updateCustomer = async () => {
 		console.log(`Form failed validation\n\n${v$.value.$errors[0].$propertyPath.toLocaleUpperCase()} ${v$.value.$errors[0].$message}`);
 	} else {
 	// if(true) {
-	
+		// selectedCustomer.value[field] = value;
+    	// touchedFields.value[field] = true;
+
+		if( selectedCustomer.value.first === undefined ) {
+			selectedCustomer.value.first = "";
+			touchedFields.value.first = true;
+		}
+		if( selectedCustomer.value.name != (selectedCustomer.value.first).trim() + " " + selectedCustomer.value.last ) {
+			selectedCustomer.value.name = (selectedCustomer.value.first).trim() + " " + selectedCustomer.value.last;
+			touchedFields.value.name = true;
+		}
+		if( selectedCustomer.value.country != (selectedCustomer.value.country).toUpperCase() ) {
+			selectedCustomer.value.country = (selectedCustomer.value.country).toUpperCase();
+			touchedFields.value.country = true;
+		}
+		if(selectedCustomer.value.coding == "" )
+		{
+			console.log("need to set coding");
+			let z = parseInt(selectedCustomer.value.zip.toString().substr(0,3),10);
+			let zcount = await DataService.getZipCount(z);
+			console.log("zcount", zcount.data);
+
+			touchedFields.value.coding = true;
+		}
+
 		const updatedFields = Object.keys(touchedFields.value).reduce((acc, key) => {
             acc[key] = selectedCustomer.value[key];
-			// console.log("addressChangeTrigger[key]", addressChangeTrigger[key]);
-			// console.log("selectedCustomer.value[key]", selectedCustomer.value[key]);
-			console.log("key", key);
-			console.log("id", selectedCustomer.value.id);
 			if( addressChangeTrigger.hasOwnProperty(key) && addressChangeTrigger[key] != selectedCustomer.value[key] && selectedCustomer.value.hasOwnProperty("id") && selectedCustomer.value.id != "undefined") {
 				isAddressChange = true;
 			}
@@ -299,53 +310,24 @@ const updateCustomer = async () => {
 			console.log("No fields updated");
 			return;
 		}
+
 		console.log("Updated Fields", updatedFields);
 		console.log("isAddressChange", isAddressChange);
+
+        let res = await custStore.updateCustomer(selectedCustomer.value.id, updatedFields);
+        console.log("Customer updated in store", res);
+
 		if(isAddressChange) {
-			if(confirm("Is this an address change?", "Address Change")) {
-				console.log("Address Change");
-				let updateAddr = {
-					first: originalCustomer.first,
-					last: originalCustomer.last,
-					address1: originalCustomer.address1,
-					address2: originalCustomer.address2,
-					address3: originalCustomer.address3,
-					city: originalCustomer.city,
-					state: originalCustomer.state,
-					zip: originalCustomer.zip,
-					country: originalCustomer.country,
-					phone: originalCustomer.phone,
-					email: originalCustomer.email,
-				}
-				try {
-					let resp = await DataService.updateCustomerAddress(selectedCustomer.value.id, updateAddr);
-					console.log("stored previous address:",resp);
-				} catch(e) {
-					console.log(e);
-					alert(`Error updating address`);
-				}
-			}
+			originalCustomer.address_change = 1;
+			let addrRes = await custStore.updateCustomerAddress(selectedCustomer.value.id, originalCustomer);
+			console.log("Customer address stored in store", addrRes);
 		}
-		if( selectedCustomer.value.first === undefined )
-			selectedCustomer.value.first = "";
-		selectedCustomer.value.name = (selectedCustomer.value.first + " ").trim() + selectedCustomer.value.last;
-		selectedCustomer.value.country = (selectedCustomer.value.country).toUpperCase();
-		let z = parseInt(selectedCustomer.value.zip.toString().substr(0,3),10);
-		let zcount = await DataService.getZipCount(z);
-		console.log("zcount", zcount);
-		DataService.updateCustomer(selectedCustomer.value.id, selectedCustomer.value)
-		.then(response => {
-			console.log(response.data);
-			alert(`Customer ${selectedCustomer.value.name} updated!`);
-			custStore.fetchCustomers();
-			onCancel();
-		})
-		.catch(e => {
-			console.log(e);
-			alert(`Error updating customer ${selectedCustomer.value.name}`);
-		});
+		
+		onCancel();
 	}
 };
+
+
 
 const handleInputChange = (field, value) => {
 	
@@ -408,12 +390,15 @@ const handleInputChange = (field, value) => {
 .scrollable-panel {
     flex-grow: 1; /* Take up remaining space */
     overflow-y: auto;
-    height: calc(100vh - 260px);
-  }
+    height: calc(100vh - 175px);
+}
 
+.customer-form h2 {
+	line-height: .5;
+}
 .customer-form {
 	/* width: 200px; */
-	padding: 10px;
+	/* padding-bottom: 10px; */
 	flex: 1.5;
 	font-weight: bold;
 }
