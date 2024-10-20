@@ -1,6 +1,13 @@
 import http from "./http-common";
 
 class DataService {
+	/********Setting********************************************** */
+	getSettings() {
+		return http.get("/settings");
+	}
+	updateSettings(data) {
+		return http.post(`/settings`, data);
+	}
 	/********Customers********************************************** */
 	getAllCustomers(params) {
 		return http.post("/customers", params);

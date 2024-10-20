@@ -23,7 +23,9 @@ const handleSelect = (index) => {
       <li @click="handleSelect('orders')" :class="{ selected: selectedIndex === 'orders' }">Orders</li>
       <li @click="handleSelect('agencies')" :class="{ selected: selectedIndex === 'agencies' }">Agencies</li>
       <li @click="handleSelect('hope')" :class="{ selected: selectedIndex === 'hope' }">Hope</li>
-      <!-- <li @click="handleSelect(3)">Contact</li> -->
+      <li @click="handleSelect('settings')" :class="{ selected: selectedIndex === 'settings' }">
+        <i class="fas fa-cog"></i>
+      </li>
     </ul>
   </div>
   <RouterView />

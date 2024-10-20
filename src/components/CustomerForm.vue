@@ -1,6 +1,7 @@
 <template>
 	<div class="customer-form" v-if="selectedCustomer">
 		<h2>Edit Customer {{ selectedCustomer.last }}</h2>
+		<button @click="openDialog">Open Dialog</button>
 		<form @submit.prevent="updateCustomer" class="scrollable-panel">
 			<div style="display: inline-block;">
 				<Button type="submit" :disabled="!isFormValid">Save</Button>
@@ -89,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, reactive } from 'vue';
+import { ref, watch, computed, reactive, defineEmits } from 'vue';
 import DataService from "../services/data-service.js";
 import useValidate from '@vuelidate/core'
 import { required, email, maxLength } from '@vuelidate/validators'
@@ -102,9 +103,9 @@ import { Label } from '@/components/ui/label'
 
 const { distributors } = storeToRefs(useDistributorStore());
 // const distStore = useDistributorStore();
-const { schema } = storeToRefs(useCustomerStore());
+const { schema, current_issue } = storeToRefs(useCustomerStore());
 const custStore = useCustomerStore();
-const emit = defineEmits(['select-customer','new-customer']);
+const emit = defineEmits(['select-customer','new-customer','open-memo']);
 const props = defineProps({
 	customer: {
 		type: Object,
@@ -174,6 +175,11 @@ let addressChangeTrigger = {
 	"state": "state",
 	"zip": "zip",
 	"country": "country",
+};
+
+const openDialog = () => {
+	const data = { message: 'Data from CustomerOrders' }; // Replace with actual data
+	emit('open-memo', data);
 };
 
 watch(schema, (newVal) => {

@@ -6,14 +6,15 @@ import CustomerManagement from '../views/CustomerManagement.vue';
 import HopeManagement from '../views/HopeManagement.vue';
 import IncomingOrderManagement from '../views/IncomingOrderManagement.vue';
 import AgencyManagement from '../views/AgencyManagement.vue';
+import SettingsManagement from '../views/SettingsManagement.vue';
 
 const routes = [
-    // {
-    //   path: '/',
-    //   name: 'Home',
-    //   component: CustomerManagement, 
-    //   props: true
-    // },
+    {
+      path: '/',
+      name: 'Home',
+      component: CustomerManagement, 
+      props: true
+    },
     { 
       path: '/customers', 
       name: 'CustomerManagement',
@@ -36,6 +37,12 @@ const routes = [
       path: '/agencies', 
       name: 'AgencyManagement',
       component: AgencyManagement, 
+      props: true
+    },
+    { 
+      path: '/settings', 
+      name: 'SettingsManagement',
+      component: SettingsManagement, 
       props: true
     },
 ]

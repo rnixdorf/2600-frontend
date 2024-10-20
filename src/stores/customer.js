@@ -19,7 +19,9 @@ export const useCustomerStore = defineStore({
     subscription: null,
     sub_types: [],
     sub_type: null,
-    schema: null
+    schema: null,
+    current_issue: null,
+    on_sale_date: null,
   }),
   getters: {
     getCustomerById: (state) => {
@@ -31,12 +33,59 @@ export const useCustomerStore = defineStore({
     getSchema: (state) => {
       return state.schema
     },
-    
+    getNewExpiration: (exp, years, issues) => {
+      console.log("exp: ", exp, " years: ", years, " issues: ", issues);
+      if(!exp) return "";
+      let addIssues = issues + (years * 4);
+      const [quarter, year] = exp.split('Q').map(Number);
+      let newQuarter = quarter + addIssues;
+      let newYear = year;
+      while (newQuarter > 4) {
+        newQuarter -= 4;
+        newYear++;
+      }
+      while (newQuarter < 1) {
+        newQuarter += 4;
+        newYear--;
+      }
+      return `${newQuarter}Q${newYear}`;
+    }
   }, 
   setter: {
     setLastName: (val) => {last_name = val}
   },
   actions: {
+    async getSettings() {
+      this.current_issue = null;
+      this.on_sale_date = null;
+      this.error = null;
+      try {
+        await API.getSettings()
+        .then((response) => {
+          // console.log("settings: ", response.data[0]);
+          this.current_issue = response.data[0].current_issue;
+          this.on_sale_date = response.data[0].onsale.substring(0,10);
+          console.log(this.current_issue, this.on_sale_date);
+          return response.data
+        })
+        .catch((error) => {this.error = error; return null});
+        
+      } catch (error) {
+        this.error = error
+        return null;
+      } finally {
+        return true;
+      }
+    },
+    async updateSettings(data) {
+      try {
+        const response = await API.updateSettings(data);
+        return response.data;
+      } catch (error) {
+        this.error = error;
+        return null;
+      }
+    },
     async fetchSubTypes() {
       this.sub_types = [];
       this.loading = true;
@@ -51,7 +100,6 @@ export const useCustomerStore = defineStore({
         this.error = error
         return false;
       } finally {
-        this.loading = false
         return true;
       }
     },

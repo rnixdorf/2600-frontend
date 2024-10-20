@@ -103,6 +103,8 @@
   const renew_id = ref(0);
   const exp = ref("");
   const format_id = ref(0);
+  const custStore = useCustomerStore();
+  const { orders, subscriptions, sub_types, error, current_issue } = storeToRefs(useCustomerStore());
   const newExp = computed(() => {
     if(!exp.value) return "";
     let addIssues = issues.value + (years.value * 4);
@@ -120,8 +122,7 @@
 
     return `${newQuarter}Q${newYear}`;
   });
-  const custStore = useCustomerStore();
-  const { orders, subscriptions, sub_types, error } = storeToRefs(useCustomerStore());
+  
 
   const props = defineProps({
     customer: {

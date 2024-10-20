@@ -78,10 +78,10 @@
   
   const emit = defineEmits(['select-customer','new-customer']);
 
-  const { customers, loading, error } = storeToRefs(useCustomerStore());
+  const { customers, loading, error, current_issue } = storeToRefs(useCustomerStore());
   // const { distributors } = storeToRefs(useDistributorStore());
   const custStore = useCustomerStore();
-  const { fetchCustomers, fetchSubTypes } = custStore;
+  const { fetchCustomers, fetchSubTypes, getSettings } = custStore;
   const distStore = useDistributorStore();
   const params = ref({last_name: '', zip: '', name: ''});
 
@@ -111,9 +111,10 @@
   onMounted(async () => {
     loading.value = true;
     try {
-      await fetchCustomers();
-      customers.value = custStore.customers;
+      await getSettings();
       await fetchSubTypes();
+      await fetchCustomers();
+      // customers.value = custStore.customers;
     } catch (err) {
       error.value = err;
     } finally {
