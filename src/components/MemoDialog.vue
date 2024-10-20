@@ -2,6 +2,9 @@
     <div v-if="visible" class="dialog-overlay">
       <div class="dialog-content">
         <slot></slot>
+        <div v-if="data">
+          <p>{{ data.message }}</p>
+        </div>
         <button @click="close">Close</button>
         <button @click="submitData">Submit</button>
       </div>
@@ -9,10 +12,11 @@
 </template>
   
 <script setup>
-  import { defineProps, defineEmits } from 'vue';
+  import { defineProps } from 'vue';
   
   const props = defineProps({
     visible: Boolean,
+    data: Object,
   });
   
   const emit = defineEmits(['close-memo', 'submit-memo']);

@@ -1,7 +1,7 @@
 <template>
   <div class="customer-management">
     <CustomerList @select-customer="handleSelectCustomer" @new-customer="handleNewCustomer"/>
-    <CustomerForm :customer="selectedCustomer" @select-customer="handleSelectCustomer" @open-memo="handleOpenDialog"/>
+    <CustomerForm :customer="selectedCustomer" @select-customer="handleSelectCustomer" />
     <CustomerOrders :customer="selectedCustomer" />
     <MemoDialog :visible="isDialogVisible" @close-memo="closeDialog" @submit="handleDialogSubmit">
       <p>Dialog content goes here</p>

@@ -1,7 +1,10 @@
 <template>
 	<div class="customer-form" v-if="selectedCustomer">
 		<h2>Edit Customer {{ selectedCustomer.last }}</h2>
-		<button @click="openDialog">Open Dialog</button>
+		<div>
+			<button @click="openDialog">Open Dialog</button>
+			<MemoDialog :visible="isDialogVisible" :data="dialogData" @close-memo="closeDialog" @submit-memo="handleSubmit" />
+		</div>
 		<form @submit.prevent="updateCustomer" class="scrollable-panel">
 			<div style="display: inline-block;">
 				<Button type="submit" :disabled="!isFormValid">Save</Button>
@@ -90,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, reactive, defineEmits } from 'vue';
+import { ref, watch, computed, reactive } from 'vue';
 import DataService from "../services/data-service.js";
 import useValidate from '@vuelidate/core'
 import { required, email, maxLength } from '@vuelidate/validators'
@@ -100,19 +103,22 @@ import vSelect from 'vs-vue3-select'
 import { useDistributorStore } from '../stores/distributors'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import MemoDialog from './MemoDialog.vue';
+
+const isDialogVisible = ref(false);
+const dialogData = ref({});
 
 const { distributors } = storeToRefs(useDistributorStore());
 // const distStore = useDistributorStore();
 const { schema, current_issue } = storeToRefs(useCustomerStore());
 const custStore = useCustomerStore();
-const emit = defineEmits(['select-customer','new-customer','open-memo']);
+const emit = defineEmits(['select-customer','new-customer']);
 const props = defineProps({
 	customer: {
 		type: Object,
 		required: false
 	}
 });
-
 const selectedCustomer = ref(null);
 const dialogVisible = ref(false);
 const editAddress = ref({});
@@ -178,8 +184,17 @@ let addressChangeTrigger = {
 };
 
 const openDialog = () => {
-	const data = { message: 'Data from CustomerOrders' }; // Replace with actual data
-	emit('open-memo', data);
+  dialogData.value = { message: 'Initial data from parent' }; // Replace with actual data
+  isDialogVisible.value = true;
+};
+
+const closeDialog = () => {
+  isDialogVisible.value = false;
+};
+
+const handleSubmit = (data) => {
+  console.log('Submitted data:', data);
+  closeDialog();
 };
 
 watch(schema, (newVal) => {
