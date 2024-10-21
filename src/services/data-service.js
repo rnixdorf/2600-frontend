@@ -44,6 +44,10 @@ class DataService {
 		return http.get(`/order/${orderId}`);
 	}
 
+	insertCustomerOrder(data) {
+		return http.post(`/customerOrders`, data);
+	}
+
 	/********Distributors********************************************** */
 	getAllDistributors() {
 		return http.get("/distributors");

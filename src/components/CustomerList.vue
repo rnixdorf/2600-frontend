@@ -99,14 +99,14 @@
     emit('select-customer', { sub_code: cd });
   };
 
-  const _keyListener = function(e) {
-    console.log(e.key);
-    if ( e.key === "n" || e.key === "N" ) {
-        e.preventDefault(); // present "Save Page" from getting triggered.
+  // const _keyListener = function(e) {
+  //   console.log(e.key);
+  //   if ( e.key === "n" || e.key === "N" ) {
+  //       e.preventDefault(); // present "Save Page" from getting triggered.
 
-        listDialogVisible.value = true
-    }
-  };
+  //       listDialogVisible.value = true
+  //   }
+  // };
 
   onMounted(async () => {
     loading.value = true;

@@ -8,10 +8,13 @@
             New Sub
           </button>
           <br>
-          <button class="small-button" type="submit" @click="renewSubDialog(subscription.id,subscription.expiration);" title="Renew">
+          <button class="small-button" type="submit" @click="renewSubDialog(subscription.id,subscription.expiration,subscription.email);" title="Renew">
             <Icon :icon="iconAdd" />
           </button>
-          <button v-if="!subscription.cancelled" type="submit" @click="cancelSub(subscription.id);" class="small-button-red" title="Cancel">
+          <button class="small-button" type="submit" @click="editSubDialog(subscription.id,subscription.expiration,subscription.email);" title="Edit">
+            <Icon :icon="iconEdit" />
+          </button>
+          <button v-if="!subscription.cancelled" type="submit" @click="cancelSubDialog(subscription.id,subscription.expiration);" class="small-button-red" title="Cancel">
             <Icon :icon="iconCancel" />
           </button>
           <span>&nbsp;Exp: {{ subscription.expiration }}</span>
@@ -34,9 +37,10 @@
               {{ order.order_num }}
             </a>
             <span v-else>{{ order.order_num }}</span>
+            <br>
           </span>
-          <span v-else> {{ order.source_name }} Order</span>
-          <br>
+          <!-- <span v-else> {{ order.source_name }} Order</span> -->
+          <!-- <br> -->
           <span v-if="order.order_date != null">Order Date:&emsp;{{ (new Date(order.order_date)).toLocaleDateString() }}<br></span>
           Entry Date: &emsp;{{ (new Date(order.enter_date)).toLocaleDateString() }}
           <br>
@@ -58,31 +62,46 @@
   <div class="customer-orders" v-if="!selectedCustomer"></div>
   <div v-if="listDialogVisible" class="modal-backdrop">
       <dialog class="my-dialog" open>
-        <h2 v-if="renew_id > 0">Renew Subscription</h2>
+        <h2 v-if="isCancelled" class="error">Cancel Subscription</h2>
+        <h2 v-else-if="renew_id > 0">Renew Subscription</h2>
         <h2 v-else>New Subscription</h2>
         <!-- <form @submit.prevent="newCustomer"> -->
-          <div v-if="renew_id < 0">
-            <span v-for="(subType, index) in sub_types" :key="index">
-              <input type="radio" :id="subType" :value="subType.id" v-model="format_id">
-              <label :for="subType">{{ subType.name }}</label>
-            </span>
+          <div v-if="!isCancelled">
+            <div v-if="renew_id <= 0">
+              <span v-for="(subType, index) in sub_types" :key="index">
+                <input type="radio" :id="subType" :value="subType.id" v-model="format_id">
+                <label :for="subType">{{ subType.name }}</label>
+              </span>
+              <br><br>
+            </div>
+            <button type="submit" @click="setYears(1);">1 Year</button>
+            <button type="submit" @click="setYears(2);">2 Years</button>
+            <button type="submit" @click="setYears(3);">3 Years</button>
+            <button type="submit" @click="setYears(99);">Lifetime</button>
             <br><br>
+            <label for="years">Years: </label>
+            <input type="number" id="years" v-model="years" min="-3" max="100" class="always-show-spinner">
+            <label for="issues">&emsp;Issues: </label>
+            <input type="number" id="issues" v-model="issues" min="-3" max="100" class="always-show-spinner">
+            <br><br>
+            <span v-if="renew_id > 0">Current Exp: {{ exp }}</span>
+            <span>&emsp;New Exp: {{ newExp }}</span>
+          
+            <br><br>
+            <div v-if="!isCancelled">
+              <label for="email">Email: </label>
+              <input type="text" id="sub_email" v-model="sub_email" class="sub_email" tabindex="-1">
+            </div>
           </div>
-          <button type="submit" @click="setYears(1);listDialogVisible = true">1 Year</button>
-          <button type="submit" @click="setYears(2);listDialogVisible = true">2 Years</button>
-          <button type="submit" @click="setYears(3);listDialogVisible = true">3 Years</button>
+          <label for="memo">Memo: </label>
+          <textarea id="memo" v-model="memo" class="memo-textarea"></textarea>
+          <br v-if="memoError">
+          <span v-if="memoError" class="error">{{ memoError }}</span>
           <br><br>
-          <label for="years">Years: </label>
-          <input type="number" id="years" v-model="years" min="-3" max="100" class="always-show-spinner">
-          <label for="issues">&emsp;Issues: </label>
-          <input type="number" id="issues" v-model="issues" min="-3" max="100" class="always-show-spinner">
-          <br><br>
-          <span v-if="renew_id > 0">Current Exp: {{ exp }}</span>
-          <span>&emsp;New Exp: {{ newExp }}</span>
-          <br><br>
-          <button v-if="renew_id > 0" type="submit" @click="renewSubscription(newExp);listDialogVisible = false">Renew</button>
-          <button v-else type="submit" @click="newSubscription(newExp);listDialogVisible = false">New</button>
-          <button type="button" @click="listDialogVisible = false">Cancel</button>
+          <button v-if="isCancelled" type="submit" @click="cancelSubscription();" :disabled="isMemoEmpty">Cancel Subscription</button>
+          <button v-else-if="renew_id > 0" type="submit" @click="renewSubscription(newExp);" :disabled="isMemoEmpty">Renew</button>
+          <button v-else type="submit" @click="newSubscription(newExp);" :disabled="isMemoEmpty">New {{ selectedSubTypeName }}</button>
+          <button type="button" @click="listDialogVisible = false;memo = '';isCancelled = false;">Cancel</button>
         <!-- </form> -->
       </dialog>
 	  </div>
@@ -94,19 +113,26 @@
   import { useCustomerStore } from '../stores/customer'
   import { Icon } from '@iconify/vue';
   import DataService from "../services/data-service.js";
+import { email } from '@vuelidate/validators';
 
+  const memo = ref('');
+  const memoError = ref('');
   const iconAdd = ref('mdi:refresh');
   const iconCancel = ref('mdi:close');
+  const iconEdit = ref('mdi:invoice-text-edit-outline');
   const listDialogVisible = ref(false);
+  const isCancelled = ref(false);
   const years = ref(0);
   const issues = ref(0);
   const renew_id = ref(0);
   const exp = ref("");
-  const format_id = ref(0);
+  const format_id = ref(1);
+  const sub_email = ref("");
   const custStore = useCustomerStore();
   const { orders, subscriptions, sub_types, error, current_issue } = storeToRefs(useCustomerStore());
   const newExp = computed(() => {
     if(!exp.value) return "";
+    if (years.value == 99) return "5Q99";
     let addIssues = issues.value + (years.value * 4);
     const [quarter, year] = exp.value.split('Q').map(Number);
     let newQuarter = quarter + addIssues;
@@ -131,21 +157,16 @@
     }
   });
 
-  const cancelSub = async (sub) => {
-    console.log("cancelSub: ", sub);
-    let success = await DataService.updateSubscription(sub, { cancelled: true });
-    if (!success) {
-      alert("Ups, something happened 🙂", error.message);
-      console.log("Api status ->", error.message);
-    }
-    else
-    {
-      await custStore.getCustomerSubscriptionsById(selectedCustomer.value.id);
-    }
-  }
+  const isMemoEmpty = computed(() => !memo.value);
 
-  const renewSubDialog = async (sub_id,expire) => {
-    console.log("renew Sub: ", sub_id);
+  const selectedSubTypeName = computed(() => {
+    const selectedSubType = sub_types.value.find(subType => subType.id === format_id.value);
+    return selectedSubType ? selectedSubType.name : '';
+  });
+
+  const cancelSubDialog = async (sub_id, expire) => {
+    console.log("cancelSubDialog: ", sub_id);
+    isCancelled.value = true;
     years.value = 0;
     issues.value = 0;
     renew_id.value = sub_id;
@@ -153,42 +174,125 @@
     listDialogVisible.value = true;
   }
 
-  const newSubDialog = async () => {
-    console.log("new Sub: ");
+  const renewSubDialog = async (sub_id,expire,email) => {
+    // console.log("renew Sub: ", sub_id);
     years.value = 0;
     issues.value = 0;
-    renew_id.value = -1;
-    format_id.value = 1;
-    // exp.value = expire;
+    renew_id.value = sub_id;
+    exp.value = expire;
+    if( email != undefined || email == null)
+      sub_email.value = selectedCustomer.value.email;
+    else
+      sub_email.value = email;
     listDialogVisible.value = true;
   }
 
-  const newSubscription = async (newExp) => {
-    console.log("newSubscription: ", selectedCustomer.value.id, newExp, format_id.value);
-    // let success = await DataService.updateSubscription(selectedCustomer.value.id, { expiration: newExp, active: true, cancelled: false });
-    // if (!success) {
-    //   alert("Ups, something happened 🙂", error.message);
-    //   console.log("Api status ->", error.message);
-    // }
-    // else
-    // {
-    //   await custStore.getCustomerSubscriptionsById(selectedCustomer.value.id);
-    // }
+  const newSubDialog = async () => {
+    // console.log("new Sub: ");
+    years.value = 1;
+    issues.value = 0;
+    renew_id.value = -1;
+    format_id.value = 1;
+    exp.value = current_issue.value;
+    sub_email.value = selectedCustomer.value.email;
+    listDialogVisible.value = true;
   }
 
-  const renewSubscription = async (newExp) => {
-    console.log("renewSubscription: ", renew_id.value, newExp);
-    let success = await DataService.updateSubscription(renew_id.value, { expiration: newExp, active: true, cancelled: false });
+  const validateMemo = () => {
+    if (!memo.value) {
+      memoError.value = 'Memo is required';
+      return false;
+    }
+    memoError.value = '';
+    return true;
+  };
+
+  const newSubscription = async (newExp) => {
+    if (!validateMemo()) return;
+    console.log("newSubscription: ", selectedCustomer.value.id, newExp, format_id.value, memo.value);
+    let success = await DataService.updateSubscription(0, 
+      { expiration: newExp, 
+        active: true, 
+        cancelled: false, 
+        memo: memo.value, 
+        active: true,
+        email: sub_email.value,
+        fk_customers_id: selectedCustomer.value.id, 
+        fk_subscription_types_id: format_id.value
+      }
+    );
     if (!success) {
       alert("Ups, something happened 🙂", error.message);
       console.log("Api status ->", error.message);
     }
     else
     {
+      await processOrder();
       await custStore.getCustomerSubscriptionsById(selectedCustomer.value.id);
+      memo.value = '';
+      listDialogVisible.value = false;
     }
+    
   }
 
+  const renewSubscription = async (newExp) => {
+    if (!validateMemo()) return;
+    console.log("renewSubscription: ", renew_id.value, newExp, memo.value);
+    let success = await DataService.updateSubscription(renew_id.value, { email: sub_email.value, expiration: newExp, active: true, cancelled: false });
+    if (!success) {
+      alert("Ups, something happened 🙂", error.message);
+      console.log("Api status ->", error.message);
+    }
+    else
+    {
+      await processOrder();
+      await custStore.getCustomerSubscriptionsById(selectedCustomer.value.id);
+      memo.value = '';
+      listDialogVisible.value = false;
+    }
+    
+  }
+
+  const cancelSubscription = async () => {
+    if (!validateMemo()) return;
+    console.log("cancelSubscription: ", renew_id.value, memo.value);
+    let success = await DataService.updateSubscription(renew_id.value, { active: false, cancelled: true });
+    if (!success) {
+      alert("Ups, something happened 🙂", error.message);
+      console.log("Api status ->", error.message);
+    }
+    else
+    {
+      await processOrder();
+      await custStore.getCustomerSubscriptionsById(selectedCustomer.value.id);
+      memo.value = '';
+      listDialogVisible.value = false;
+      isCancelled.value = false;
+    }
+    
+  }
+
+  const processOrder = async () => {
+    console.log("processOrder");
+    let dt = new Date();
+    dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+    let success = await DataService.insertCustomerOrder(
+      { fk_customers_id: selectedCustomer.value.id,
+        fk_order_sources_id: 3,
+        fk_order_types_id: 6,
+        enter_date: dt.toISOString().slice(0, 19).replace('T', ' '),
+        memo: memo.value,
+      });
+    if (!success) {
+      alert("Ups, something happened 🙂", error.message);
+      console.log("Api status ->", error.message);
+    }
+    // else
+    // {
+    //   await custStore.getCustomerSubscriptionsById(selectedCustomer.value.id);
+    // }
+
+  }
   const setYears = (yr) => {
     years.value = yr;
   };
@@ -329,6 +433,18 @@
   .always-show-spinner::-webkit-inner-spin-button,
   .always-show-spinner::-webkit-outer-spin-button {
     opacity: 1;
+  }
+
+  .memo-textarea {
+    width: 100%;
+    height: 100px;
+    resize: vertical; /* Allow vertical resizing */
+  }
+  .error {
+    color: red;
+  }
+  .sub_email {
+    width: 75%;
   }
 </style>
   

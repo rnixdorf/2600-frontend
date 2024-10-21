@@ -66,7 +66,7 @@
     async set(val) {
       // console.log("in zip setter ", val);
       params.value.company = val;
-      await distStore.fetchDistributors(params.value);
+      const success2 = await distStore.fetchDistributors(params.value);
     }
   });
 </script>
