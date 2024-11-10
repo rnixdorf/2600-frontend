@@ -3,18 +3,19 @@
     <h2>Subscriptions for {{ selectedCustomer.last }}</h2>
     <ul v-if="subscriptions.length > 0">
       <div style="display: inline-block;">
+        <button v-if="!(subscriptions.length == 1 && subscriptions[0].id == 0)" class="small-button" type="submit" @click="newSubDialog();" title="New Subscription">
+          New Sub
+        </button>
+        <br>
         <li v-for="(subscription) in subscriptions" :key="subscription.id">
-          <button class="small-button" type="submit" @click="newSubDialog();" title="Renew">
-            New Sub
-          </button>
-          <br>
-          <button class="small-button" type="submit" @click="renewSubDialog(subscription.id,subscription.expiration,subscription.email);" title="Renew">
+          
+          <button v-if="subscription.id > 0" class="small-button" type="submit" @click="renewSubDialog(subscription);" title="Renew">
             <Icon :icon="iconAdd" />
           </button>
-          <button class="small-button" type="submit" @click="editSubDialog(subscription.id,subscription.expiration,subscription.email);" title="Edit">
+          <button v-if="subscription.id > 0" class="small-button" type="submit" @click="editSubDialog(subscription);" title="Edit">
             <Icon :icon="iconEdit" />
           </button>
-          <button v-if="!subscription.cancelled" type="submit" @click="cancelSubDialog(subscription.id,subscription.expiration);" class="small-button-red" title="Cancel">
+          <button v-if="!subscription.cancelled && subscription.id > 0" type="submit" @click="cancelSubDialog(subscription);" class="small-button-red" title="Cancel">
             <Icon :icon="iconCancel" />
           </button>
           <span>&nbsp;Exp: {{ subscription.expiration }}</span>
@@ -64,6 +65,7 @@
       <dialog class="my-dialog" open>
         <h2 v-if="isCancelled" class="error">Cancel Subscription</h2>
         <h2 v-else-if="renew_id > 0">Renew Subscription</h2>
+        <h2 v-else-if="edit_id > 0">Edit Subscription</h2>
         <h2 v-else>New Subscription</h2>
         <!-- <form @submit.prevent="newCustomer"> -->
           <div v-if="!isCancelled">
@@ -74,17 +76,19 @@
               </span>
               <br><br>
             </div>
-            <button type="submit" @click="setYears(1);">1 Year</button>
-            <button type="submit" @click="setYears(2);">2 Years</button>
-            <button type="submit" @click="setYears(3);">3 Years</button>
-            <button type="submit" @click="setYears(99);">Lifetime</button>
-            <br><br>
+            <div v-if="edit_id <= 0">
+              <button type="submit" @click="setYears(1);">1 Year</button>
+              <button type="submit" @click="setYears(2);">2 Years</button>
+              <button type="submit" @click="setYears(3);">3 Years</button>
+              <button type="submit" @click="setYears(99);">Lifetime</button>
+              <br><br>
+            </div>
             <label for="years">Years: </label>
             <input type="number" id="years" v-model="years" min="-3" max="100" class="always-show-spinner">
             <label for="issues">&emsp;Issues: </label>
             <input type="number" id="issues" v-model="issues" min="-3" max="100" class="always-show-spinner">
             <br><br>
-            <span v-if="renew_id > 0">Current Exp: {{ exp }}</span>
+            <span v-if="renew_id > 0 || edit_id > 0">Current Exp: {{ exp }}</span>
             <span>&emsp;New Exp: {{ newExp }}</span>
           
             <br><br>
@@ -93,6 +97,13 @@
               <input type="text" id="sub_email" v-model="sub_email" class="sub_email" tabindex="-1">
             </div>
           </div>
+          <div v-else>
+            <span>&nbsp;Exp: {{ exp }}</span>
+            <span v-for="(subType) in sub_types" >
+              <span v-if="format_id==subType.id">&emsp;Type: {{ subType.name }}</span>
+            </span>
+            <br><br>
+          </div>
           <label for="memo">Memo: </label>
           <textarea id="memo" v-model="memo" class="memo-textarea"></textarea>
           <br v-if="memoError">
@@ -100,6 +111,7 @@
           <br><br>
           <button v-if="isCancelled" type="submit" @click="cancelSubscription();" :disabled="isMemoEmpty">Cancel Subscription</button>
           <button v-else-if="renew_id > 0" type="submit" @click="renewSubscription(newExp);" :disabled="isMemoEmpty">Renew</button>
+          <button v-else-if="edit_id > 0" type="submit" @click="editSubscription(newExp);" :disabled="isMemoEmpty">Save Edit</button>
           <button v-else type="submit" @click="newSubscription(newExp);" :disabled="isMemoEmpty">New {{ selectedSubTypeName }}</button>
           <button type="button" @click="listDialogVisible = false;memo = '';isCancelled = false;">Cancel</button>
         <!-- </form> -->
@@ -113,7 +125,7 @@
   import { useCustomerStore } from '../stores/customer'
   import { Icon } from '@iconify/vue';
   import DataService from "../services/data-service.js";
-import { email } from '@vuelidate/validators';
+	import { email } from '@vuelidate/validators';
 
   const memo = ref('');
   const memoError = ref('');
@@ -125,9 +137,11 @@ import { email } from '@vuelidate/validators';
   const years = ref(0);
   const issues = ref(0);
   const renew_id = ref(0);
+  const edit_id = ref(0);
   const exp = ref("");
   const format_id = ref(1);
   const sub_email = ref("");
+  const thisSub = ref(null);
   const custStore = useCustomerStore();
   const { orders, subscriptions, sub_types, error, current_issue } = storeToRefs(useCustomerStore());
   const newExp = computed(() => {
@@ -159,28 +173,45 @@ import { email } from '@vuelidate/validators';
 
   const isMemoEmpty = computed(() => !memo.value);
 
-  const selectedSubTypeName = computed(() => {
-    const selectedSubType = sub_types.value.find(subType => subType.id === format_id.value);
-    return selectedSubType ? selectedSubType.name : '';
-  });
+  const selectedSubTypeName = custStore.getSubTypeName(format_id.value);
+  // computed(() => {
+  //   const selectedSubType = sub_types.value.find(subType => subType.id === format_id.value);
+  //   return selectedSubType ? selectedSubType.name : '';
+  // });
 
-  const cancelSubDialog = async (sub_id, expire) => {
-    console.log("cancelSubDialog: ", sub_id);
+  const cancelSubDialog = async (sub) => {
+    console.log("cancelSubDialog: ", sub.id);
     isCancelled.value = true;
     years.value = 0;
     issues.value = 0;
-    renew_id.value = sub_id;
-    exp.value = expire;
+    edit_id.value = -1;
+    renew_id.value = sub.id;
+    format_id.value = sub.fk_subscription_types_id;
+    exp.value = sub.expiration;
     listDialogVisible.value = true;
   }
 
-  const renewSubDialog = async (sub_id,expire,email) => {
-    // console.log("renew Sub: ", sub_id);
+  const editSubDialog = async (sub) => {
+    thisSub.value = sub;
     years.value = 0;
     issues.value = 0;
-    renew_id.value = sub_id;
-    exp.value = expire;
-    if( email != undefined || email == null)
+    renew_id.value = -1;
+    edit_id.value = sub.id;
+    exp.value = sub.expiration;
+    sub_email.value = sub.email;
+    format_id.value = sub.fk_subscription_types_id;
+    listDialogVisible.value = true;
+  }
+
+  const renewSubDialog = async (sub) => {
+    // console.log("renew Sub: ", sub_id);
+    thisSub.value = sub;
+    years.value = 0;
+    issues.value = 0;
+    renew_id.value = sub.id;
+    edit_id.value = -1;
+    exp.value = sub.expiration;
+    if( sub.email != undefined ||sub.email == null)
       sub_email.value = selectedCustomer.value.email;
     else
       sub_email.value = email;
@@ -189,9 +220,11 @@ import { email } from '@vuelidate/validators';
 
   const newSubDialog = async () => {
     // console.log("new Sub: ");
+    thisSub.value = null;
     years.value = 1;
     issues.value = 0;
     renew_id.value = -1;
+    edit_id.value = -1;
     format_id.value = 1;
     exp.value = current_issue.value;
     sub_email.value = selectedCustomer.value.email;
@@ -253,6 +286,23 @@ import { email } from '@vuelidate/validators';
     
   }
 
+  const editSubscription = async (newExp) => {
+    if (!validateMemo()) return;
+    console.log("editSubscription: ", edit_id.value, newExp, memo.value);
+    let success = await DataService.updateSubscription(edit_id.value, { email: sub_email.value, expiration: newExp, fk_subscription_types_id: format_id.value });
+    if (!success) {
+      alert("Ups, something happened 🙂", error.message);
+      console.log("Api status ->", error.message);
+    }
+    else
+    {
+      await processOrder();
+      await custStore.getCustomerSubscriptionsById(selectedCustomer.value.id);
+      memo.value = '';
+      listDialogVisible.value = false;
+    }
+  }
+
   const cancelSubscription = async () => {
     if (!validateMemo()) return;
     console.log("cancelSubscription: ", renew_id.value, memo.value);
@@ -291,7 +341,6 @@ import { email } from '@vuelidate/validators';
     // {
     //   await custStore.getCustomerSubscriptionsById(selectedCustomer.value.id);
     // }
-
   }
   const setYears = (yr) => {
     years.value = yr;
@@ -339,112 +388,121 @@ import { email } from '@vuelidate/validators';
     // }
   }, { deep: true });
   
+  watch(subscriptions, (newVal) => {
+    console.log("subscriptions newVal: ", newVal);
+    // console.log("sub newVal.length: ", newVal.length);
+    // console.log("state.previousOrderNum: ", state.previousOrderNum);
+    // else if (newVal.length == 0) {
+    //   selectedCustomer.value = null;
+    //   console.log("sc:",selectedCustomer.value);
+    // }
+  }, { deep: true });
 </script>
   
 <style scoped>
-  .scrollable-panel {
-    flex-grow: 1; /* Take up remaining space */
-    overflow-y: auto;
-    height: calc(100vh - 280px);
-  }
-  .customer-orders h2 {
-    line-height: .2;
-  }
-  .customer-orders {
-    width: 200px;
-    background: #f5f5f5;
-    padding-left: 5px;
-    flex: 1;
-    text-align: left;
-    font-weight: bold;
-  }
-  .customer-orders ul {
-    list-style-type: none;
-    padding: 0;
-    line-height: 1.5;
-  }
-  .customer-orders ul.lines {
-    list-style-type: none;
-    padding: 0;
-    line-height: 1;
-    display: inline-block;
-  }
-  .customer-orders li {
-    padding: 5px;
-  }
-  .floatleft {
-    float:left;
-  }
-  .small-button {
-    padding: 1px;
-    background-color: green;
-    border: none;
-    border-radius: 20%;
-    color: white;
-    margin-right:.4em;
-    margin-bottom: .5em;
-  }
-  .small-button:hover {
-    background-color: darkgreen;
-  }
-  .small-button-red {
-    padding: 1px;
-    background-color: red;
-    border: none;
-    border-radius: 20%;
-    color: white;
-    margin-right:.4em;
-  }
-  .small-button-red:hover {
-    background-color: darkred;
-  }
+	.scrollable-panel {
+		flex-grow: 1; /* Take up remaining space */
+		overflow-y: auto;
+		height: calc(100vh - 310px);
+	}
+	.customer-orders h2 {
+		line-height: .2;
+	}
+	.customer-orders {
+		width: 200px;
+		background: #f5f5f5;
+		padding-left: 5px;
+		flex: 1;
+		text-align: left;
+		font-weight: bold;
+	}
+	.customer-orders ul {
+		list-style-type: none;
+		padding: 0;
+		line-height: 1.25;
+	}
+	.customer-orders ul.lines {
+		list-style-type: none;
+		padding: 0;
+		line-height: 1;
+		display: inline-block;
+	}
+	.customer-orders li {
+		padding: 1px;
+	}
+	.floatleft {
+		float:left;
+	}
+	.small-button {
+		padding: 1px;
+		background-color: green;
+		border: none;
+		border-radius: 20%;
+		color: white;
+		margin-right:.4em;
+		margin-bottom: .5em;
+	}
+	.small-button:hover {
+		background-color: darkgreen;
+	}
+	.small-button-red {
+		padding: 1px;
+		background-color: red;
+		border: none;
+		border-radius: 20%;
+		color: white;
+		margin-right:.4em;
+	}
+	.small-button-red:hover {
+		background-color: darkred;
+	}
 
-  .modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
+	.modal-backdrop {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1000;
+	}
 
-  .my-dialog {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    max-width: 650px;
-    width: 100%;
-  }
+	.my-dialog {
+		background: white;
+		padding: 20px;
+		border-radius: 8px;
+		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		max-width: 650px;
+		width: 100%;
+	}
 
-  .my-dialog button {
-    background-color: lightgray;
-    margin-left: 20px;
-  }
+	.my-dialog button {
+		background-color: lightgray;
+		margin-left: 20px;
+	}
 
-  .my-dialog input[type="radio"] {
-    margin-left: 20px;
-  }
+	.my-dialog input[type="radio"] {
+		margin-left: 20px;
+	}
 
-  .always-show-spinner::-webkit-inner-spin-button,
-  .always-show-spinner::-webkit-outer-spin-button {
-    opacity: 1;
-  }
+	.always-show-spinner::-webkit-inner-spin-button,
+	.always-show-spinner::-webkit-outer-spin-button {
+		opacity: 1;
+	}
 
-  .memo-textarea {
-    width: 100%;
-    height: 100px;
-    resize: vertical; /* Allow vertical resizing */
-  }
-  .error {
-    color: red;
-  }
-  .sub_email {
-    width: 75%;
-  }
+	.memo-textarea {
+		width: 100%;
+		height: 100px;
+		resize: vertical; /* Allow vertical resizing */
+	}
+	.error {
+		color: red;
+	}
+	.sub_email {
+		width: 75%;
+	}
 </style>
   

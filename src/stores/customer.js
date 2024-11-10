@@ -55,6 +55,20 @@ export const useCustomerStore = defineStore({
     setLastName: (val) => {last_name = val}
   },
   actions: {
+    createTempSubscription(data) {
+      console.log("in createTempSubscription: ", data);
+      let sub = {
+        id: 0,
+        subtype: data.type,
+        expiration: data.expiration,
+        active: true,
+      }
+      this.subscriptions = [];
+      this.subscriptions.push(sub);
+      console.log("temp sub: ", sub);
+      console.log("subs: ", this.subscriptions);
+      return sub;
+    },
     async getSettings() {
       this.current_issue = null;
       this.on_sale_date = null;
@@ -108,7 +122,7 @@ export const useCustomerStore = defineStore({
       this.loading = true;
       this.error = null;
       this.schema = null;
-      console.log("in fetchCustomers params:", params)
+      // console.log("in fetchCustomers params:", params)
       try {
         
         this.customers = await API.getAllCustomers(params)
@@ -167,7 +181,7 @@ export const useCustomerStore = defineStore({
       }
     },
     filterCustomer() {
-      console.log("in filterCustomer")
+      // console.log("in filterCustomer")
       this.filtered_customers = this.customers.filter((customer) => customer.Last.toUpperCase().includes(this.last_name.toUpperCase()) )
       // {this.customers.find((customer) => customer.Last.includes(last_name))}
     },
@@ -188,6 +202,8 @@ export const useCustomerStore = defineStore({
       }
     },
     async getCustomerSubscriptionsById(customerId) {
+      // console.log("in getCustomerSubscriptionsById: ", customerId);
+      if(customerId === undefined) return false;
       this.subscriptions = []
       this.loading = true
       try {
@@ -236,6 +252,10 @@ export const useCustomerStore = defineStore({
       } finally {
         this.loading = false;
       }
+    },
+    getSubTypeName(id) {
+      const selectedSubType = this.sub_types.find(subType => subType.id === id);
+      return selectedSubType ? selectedSubType.name : '';
     },
     getSubCode(type) {
       let dt = new Date();

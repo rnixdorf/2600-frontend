@@ -1,10 +1,6 @@
 <template>
 	<div class="customer-form" v-if="selectedCustomer">
 		<h2>Edit Customer {{ selectedCustomer.last }}</h2>
-		<div>
-			<button @click="openDialog">Open Dialog</button>
-			<MemoDialog :visible="isDialogVisible" :data="dialogData" @close-memo="closeDialog" @submit-memo="handleSubmit" />
-		</div>
 		<form @submit.prevent="updateCustomer" class="scrollable-panel">
 			<div style="display: inline-block;">
 				<Button type="submit" :disabled="!isFormValid">Save</Button>
@@ -45,9 +41,11 @@
 						label="company" 
 						:reduce="(option) => option.id">
 					</v-select>
+					<textarea v-else-if="inputType[val.name] == 'textarea'" :id="val.name" v-model="selectedCustomer[val.name]" type="textarea"  @input="handleInputChange(val.name, $event.target.value)"></textarea>
 					<input v-else :id="val.name" data-1p-ignore v-model="selectedCustomer[val.name]" :maxlength="selectedSchema[val.name].size" @input="handleInputChange(val.name, $event.target.value)" />
 					<br v-if="inputType[val.name] != 'hidden'">
 					<br v-if="inputType[val.name] == 'agencyDropdown'">
+					<br v-if="inputType[val.name] == 'textarea'">
 					<div v-for="(error, index) of v$.$errors" :key="index">
 						<p v-if="val.name==error.$property" type="error" >{{ error.$message }}</p>
 					</div>
@@ -65,27 +63,13 @@
 	<div class="customer-form" v-if="!selectedCustomer"></div>
 	<div v-if="dialogVisible" class="modal-backdrop">
 		<dialog class="my-dialog" open>
-			<h2>Edit Address</h2>
-			<form @submit.prevent="saveAddress">
-				<Label >Address1: <input type="text" v-model="editAddress.address1" /></Label>
-				<br>
-				<Label>Address2: <input type="text" v-model="editAddress.address2" /></Label>
-				<br>
-				<Label>Address3: <input type="text" v-model="editAddress.address3" /></Label>
-				<br>
-				<Label>City: <input type="text" v-model="editAddress.city" /></Label>
-				<br>
-				<Label>State: <input type="text" v-model="editAddress.state" /></Label>
-				<br>
-				<Label>Zip: <input type="text" v-model="editAddress.zip" /></Label>
-				<br>
-				<Label>Country: <input type="text" v-model="editAddress.country" /></Label>
-				<br>
-				<Label>Phone: <input type="text" v-model="editAddress.phone" /></Label>
-				<br>
-				<Label>Email: <input type="text" v-model="editAddress.email" /></Label>
+			<h2>Memo</h2>
+			<form @submit.prevent="updateCustomer">
+				<textarea id="orderMemo" v-model="orderMemo" class="memo-textarea"></textarea>
+				<br v-if="orderMemoError">
+				<span v-if="orderMemoError" class="error">{{ orderMemoError }}</span>
 				<br><br>
-				<Button type="submit">Save</Button>
+				<Button type="submit" :disabled="isMemoEmpty">Save</Button>
 				<Button type="button" @click="dialogVisible = false">Cancel</Button>
 			</form>
 		</dialog>
@@ -93,7 +77,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, reactive } from 'vue';
+import { ref, watch, computed, reactive, onMounted } from 'vue';
 import DataService from "../services/data-service.js";
 import useValidate from '@vuelidate/core'
 import { required, email, maxLength } from '@vuelidate/validators'
@@ -103,16 +87,15 @@ import vSelect from 'vs-vue3-select'
 import { useDistributorStore } from '../stores/distributors'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import MemoDialog from './MemoDialog.vue';
+// import MemoDialog from './MemoDialog.vue';
 
-const isDialogVisible = ref(false);
-const dialogData = ref({});
+// const dialogData = ref({});
 
 const { distributors } = storeToRefs(useDistributorStore());
 // const distStore = useDistributorStore();
-const { schema, current_issue } = storeToRefs(useCustomerStore());
+const { schema, subscriptions, current_issue } = storeToRefs(useCustomerStore());
 const custStore = useCustomerStore();
-const emit = defineEmits(['select-customer','new-customer']);
+const emit = defineEmits(['select-customer','new-customer','rebuild-list']);
 const props = defineProps({
 	customer: {
 		type: Object,
@@ -121,7 +104,7 @@ const props = defineProps({
 });
 const selectedCustomer = ref(null);
 const dialogVisible = ref(false);
-const editAddress = ref({});
+// const editAddress = ref({});
 const touchedFields = ref({});
 let selectedSchema = reactive({});
 let v$ = useValidate(null, selectedCustomer)
@@ -146,6 +129,7 @@ const inputType = {
 	"fk_agency_id": "agencyDropdown",
 	"sub_code": "string",
 	"coding": "string",
+	"memo": "textarea",
 }
 
 const customerFieldDisplayOrder = [
@@ -162,11 +146,13 @@ const customerFieldDisplayOrder = [
 	{name:"country",display:"Country:"},
 	{name:"phone",display:"Phone:"},
 	{name:"email",display:"Email:"},
+	{name:"memo",display:"Notes:"},
 	{name:"sub_code",display:"Sub Code:"},
 	{name:"coding",display:"Coding:"},
+	{name:"order_nums",display:"Order Nums:"},
 	{name:"fk_agency_id",display:"Agency:"},
 	{name:"agency_ref",display:"Agency Ref:"},
-	{name:"order_nums",display:"Order Nums:"},
+	
 	{name:"sample",display:"Sample?"},
 	{name:"corporate",display:"Corporate?"},
 	{name:"create_date",display:"Date Created:"},
@@ -183,19 +169,52 @@ let addressChangeTrigger = {
 	"country": "country",
 };
 
+const orderMemo = ref('');
+const orderMemoError = ref('');
+const isMemoEmpty = computed(() => !orderMemo.value);
+
+// const validateMemo = () => {
+// 	if (!orderMemo.value) {
+// 		orderMemoError.value = 'Memo is required';
+// 		return false;
+// 	}
+// 	orderMemoError.value = '';
+// 	return true;
+// };
+
 const openDialog = () => {
-  dialogData.value = { message: 'Initial data from parent' }; // Replace with actual data
-  isDialogVisible.value = true;
+//   dialogData.value = { message: 'Initial data from parent' }; // Replace with actual data
+  dialogVisible.value = true;
 };
 
 const closeDialog = () => {
-  isDialogVisible.value = false;
+	dialogVisible.value = false;
 };
 
-const handleSubmit = (data) => {
-  console.log('Submitted data:', data);
-  closeDialog();
-};
+// const handleSubmit = (data) => {
+//   console.log('Submitted data:', data);
+//   closeDialog();
+// };
+
+const processOrder = async (id) => {
+	console.log("processOrder CustomerForm", id);
+	if (id == undefined) {
+		id = selectedCustomer.value.id;
+	}
+	let dt = new Date();
+	dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+	let success = await DataService.insertCustomerOrder(
+		{ fk_customers_id: id,
+		fk_order_sources_id: 3,
+		fk_order_types_id: 6,
+		enter_date: dt.toISOString().slice(0, 19).replace('T', ' '),
+		memo: orderMemo.value,
+		});
+	if (!success) {
+		alert("Ups, something happened 🙂", error.message);
+		console.log("Api status ->", error.message);
+	}
+}
 
 watch(schema, (newVal) => {
     if (newVal) {
@@ -232,6 +251,15 @@ watch(
 				addressChangeTrigger[key] = selectedCustomer.value[key];
 			});
 			originalCustomer = { ...newVal };
+			if(selectedCustomer.value.hasOwnProperty("new_type") && selectedCustomer.value.new_type == "S") {
+				console.log("newSubCustomer", selectedCustomer.value.data);
+				let tsub = {};
+				tsub.expiration = selectedCustomer.value.data.exp;
+				tsub.format_id = selectedCustomer.value.data.format_id;
+				tsub.type = selectedCustomer.value.data.tName;
+				custStore.createTempSubscription(tsub);
+			}
+			orderMemo.value = "";
 		}
 	}
 );
@@ -275,12 +303,12 @@ const onCancel = () => {
 // 	dialogVisible.value = true;
 // };
 
-const saveAddress = async () => {
-	// Replace with actual API call
-	let res = await custStore.updateCustomerAddress(selectedCustomer.value.id,editAddress.value);
-	console.log("Save Address", res);
-	dialogVisible.value = false;
-};
+// const saveAddress = async () => {
+// 	// Replace with actual API call
+// 	let res = await custStore.updateCustomerAddress(selectedCustomer.value.id,editAddress.value);
+// 	console.log("Save Address", res);
+// 	dialogVisible.value = false;
+// };
 
 const updateCustomer = async () => {
 	console.log("Update Customer");
@@ -332,6 +360,19 @@ const updateCustomer = async () => {
 			return;
 		}
 
+		if(memo.value != "") {
+			updatedFields.memo = memo.value;
+		}
+
+		if( orderMemo.value == "" ) {
+			openDialog();
+			return;
+		}
+		else
+			closeDialog();
+
+		// if (!validateMemo()) return;
+
 		console.log("Updated Fields", updatedFields);
 		console.log("isAddressChange", isAddressChange);
 
@@ -343,6 +384,32 @@ const updateCustomer = async () => {
 			let addrRes = await custStore.updateCustomerAddress(selectedCustomer.value.id, originalCustomer);
 			console.log("Customer address stored in store", addrRes);
 		}
+		
+		
+
+		if(selectedCustomer.value.hasOwnProperty("new_type") && selectedCustomer.value.new_type == "S") {
+			console.log("adding new sub", selectedCustomer.value.data);
+			let success = await DataService.updateSubscription(0, 
+				{ expiration: selectedCustomer.value.data.exp, 
+					active: true, 
+					cancelled: false, 
+					// memo: memo.value, 
+					active: true,
+					email: selectedCustomer.value.email,
+					fk_customers_id: res.insertId, 
+					fk_subscription_types_id: selectedCustomer.value.data.tid
+				}
+			);
+		}
+
+		let cid = selectedCustomer.value.id;
+		if(res.insertId > 0)
+		{
+			cid = res.insertId;
+			emit('rebuild-list');
+		}
+
+		processOrder(cid);
 		
 		onCancel();
 	}
@@ -408,6 +475,11 @@ const handleInputChange = (field, value) => {
 	width: 21em;
 }
 
+.my-dialog button {
+	background-color: lightgray;
+	margin-left: 20px;
+}
+
 .scrollable-panel {
     flex-grow: 1; /* Take up remaining space */
     overflow-y: auto;
@@ -455,6 +527,16 @@ const handleInputChange = (field, value) => {
 	width: 8.5em;
 	margin-left: 1em;
 }
+
+.customer-form form textarea[type="textarea"] {
+    width: calc(100% - 10.2em); 
+    /* height: 100px; */
+    resize: vertical; /* Allow vertical resizing */
+	font-weight: bold;
+	float: left;
+	margin-left: .9em;
+	font-size: 1.2em;
+  }
 
 .customer-entry label {
 	/* display: inline-block; */
@@ -539,5 +621,17 @@ const handleInputChange = (field, value) => {
   /* height: 1em; */
   width: 100%;
   margin-left: 10em;
+}
+
+.memo-textarea {
+	width: 100%;
+	height: 100px;
+	resize: vertical; /* Allow vertical resizing */
+	font-weight: bold;
+	font-size: 1.2em;
+}
+
+.error {
+	color: red;
 }
 </style>

@@ -30,7 +30,7 @@
         />
         <br>
         <button @click="lastFilter = '';zipFilter='';companyFilter=''">Clear Search</button>
-        <button @click="listDialogVisible = true">New Customer</button>
+        <button @click="listDialogVisible = true;isDialogVisible = false;">New Customer</button>
     </div>
     <p v-if="loading">Loading customers...</p>
     <p v-if="error">{{ error.message }}</p>
@@ -57,10 +57,16 @@
       <dialog class="my-dialog" open>
         <h2>New Customer</h2>
         <!-- <form @submit.prevent="newCustomer"> -->
-          <button type="submit" @click="newCustomer('S');listDialogVisible = false">Subscription</button>
+          <!-- <button type="submit" @click="newCustomer('S');listDialogVisible = false">Subscription</button> -->
+          <button type="submit" @click="isDialogVisible = true">Subscription</button>
           <button type="submit" @click="newCustomer('B');listDialogVisible = false">Back Issue</button>
           <button type="submit" @click="newCustomer('M');listDialogVisible = false">Merchandise</button>
           <button type="submit" @click="newCustomer('I');listDialogVisible = false">Info</button>
+          <div >
+            <IssueDialog :issueDialogVisible="isDialogVisible" :data="dialogData" @submit-issue="newSubCustomer" />
+            
+          </div>
+          <br><br>
           <button type="button" @click="listDialogVisible = false">Cancel</button>
         <!-- </form> -->
       </dialog>
@@ -69,14 +75,19 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, computed, reactive, onUnmounted } from 'vue';
+  import { ref, onMounted, computed, onUnmounted } from 'vue';
   //import { RouterLink, useRoute } from 'vue-router'
   import { storeToRefs } from 'pinia'
   import { useCustomerStore } from '../stores/customer'
   import { useDistributorStore } from '../stores/distributors'
+  import IssueDialog from './IssueDialog.vue';
   // import { Button } from '@/components/ui/button'
   
-  const emit = defineEmits(['select-customer','new-customer']);
+  const emit = defineEmits(['select-customer','new-customer','submit-issue','rebuild-list']);
+
+  defineExpose({
+    rebuildSearch
+  });
 
   const { customers, loading, error, current_issue } = storeToRefs(useCustomerStore());
   // const { distributors } = storeToRefs(useDistributorStore());
@@ -85,6 +96,13 @@
   const distStore = useDistributorStore();
   const params = ref({last_name: '', zip: '', name: ''});
 
+  const isDialogVisible = ref(false);
+  const dialogData = ref({});
+  
+  async function rebuildSearch() {
+    console.log('Rebuilding customer list');
+    await fetchCustomers(params.value);
+  };
 
   const selectCustomer = (customer) => {
     emit('select-customer', customer);
@@ -94,11 +112,20 @@
   const newType = ref('');
 
   const newCustomer = (type) => {
-    console.log("newCustomer ", type);
+    console.log("newCustomer ", dialogData);
     let cd = custStore.getSubCode(type);
-    emit('select-customer', { sub_code: cd });
+    emit('new-customer', { sub_code: cd, new_type: type });
   };
 
+  const newSubCustomer = (data) => {
+    listDialogVisible.value = false;
+    console.log("newSubCustomer ", data);
+    let cd = custStore.getSubCode('S');
+    data.tName = custStore.getSubTypeName(data.format_id);
+    data.tid = data.format_id;
+    data.active = 1;
+    emit('new-customer', { sub_code: cd, new_type: 'S', data: data });
+  };
   // const _keyListener = function(e) {
   //   console.log(e.key);
   //   if ( e.key === "n" || e.key === "N" ) {
@@ -141,11 +168,11 @@
 
   const lastFilter = computed({
     get() {
-      console.log("in last getter");
+      // console.log("in last getter");
       return params.value.name;
     },
     async set(val) {
-      console.log("in last setter ", val);
+      // console.log("in last setter ", val);
       // custStore.last_name = val;
       // console.log("in setter ", custStore.last_name);
       // custStore.filterCustomer();

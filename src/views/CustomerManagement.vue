@@ -1,7 +1,7 @@
 <template>
   <div class="customer-management">
-    <CustomerList @select-customer="handleSelectCustomer" @new-customer="handleNewCustomer"/>
-    <CustomerForm :customer="selectedCustomer" @select-customer="handleSelectCustomer" />
+    <CustomerList ref="customerList" @select-customer="handleSelectCustomer" @new-customer="handleNewCustomer" />
+    <CustomerForm :customer="selectedCustomer" @select-customer="handleSelectCustomer" @rebuild-list="rebuildList"/>
     <CustomerOrders :customer="selectedCustomer" />
     <MemoDialog :visible="isDialogVisible" @close-memo="closeDialog" @submit="handleDialogSubmit">
       <p>Dialog content goes here</p>
@@ -10,7 +10,7 @@
 </template>
   
 <script setup>
-  import { ref } from 'vue';
+  import { ref, onMounted } from 'vue';
   import CustomerList from '../components/CustomerList.vue';
   import CustomerForm from '../components/CustomerForm.vue';
   import CustomerOrders from '../components/CustomerOrders.vue';
@@ -18,13 +18,25 @@
 
   const selectedCustomer = ref(null);
   const isDialogVisible = ref(false);
+  const customerList = ref(null);
   
+  onMounted(() => {
+    customerList.value.rebuildSearch();
+  });
+
+  const rebuildList = () => {
+    console.log('Rebuilding customer list');
+    if (customerList.value) {
+      customerList.value.rebuildSearch();
+    }
+  };
+
   const handleSelectCustomer = (customer) => {
     selectedCustomer.value = customer;
   };
 
-  const handleNewCustomer = (customer) => {
-    selectedCustomer.value = {};
+  const handleNewCustomer = (data) => {
+    selectedCustomer.value = data;
   };
 
   const openDialog = () => {
