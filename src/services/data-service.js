@@ -62,6 +62,11 @@ class DataService {
 		return http.post(`/customerSubscriptions/${subscriptionId}`, data);
 	}
 
+	/********Batches********************************************** */
+	getCurrentBatch() {
+		return http.get(`/currentBatch`);
+	}
+
 	/********HOPE********************************************** */
 	getAllHopeTickets(type_id) {
 		return http.get(`/hopeTickets/${type_id}`);

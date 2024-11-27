@@ -1,11 +1,16 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useCustomerStore } from './stores/customer';
 
 const $router = useRouter();
 const $route = useRoute();
 
-let selectedIndex = ref('');
+const selectedIndex = ref('');
+const customerStore = useCustomerStore();
+const { current_batch, current_issue } = storeToRefs(customerStore);
+
 
 const handleSelect = (index) => {
   console.log("select index: ", index);
@@ -13,11 +18,30 @@ const handleSelect = (index) => {
   $router.push('/' + index);
 };
 
+const formattedCreateDate = computed(() => {
+  console.log('current_batch: ', current_batch.value);
+  if (current_batch.value && current_batch.value.create_date) {
+    return new Date(current_batch.value.create_date).toLocaleString();
+  }
+  return 'blah';
+});
+
+onMounted(async () => {
+  await customerStore.getBatch();
+});
+
 </script>
 
 <template>
   <div>
     <h1>2600 Magazine</h1>
+    <div class="batch">
+      <span v-if="current_batch != null" >Current Batch: {{ current_batch.id }}</span>
+      <br>
+      <span>{{ formattedCreateDate }}</span>
+      <br>
+      <span>Current Issue: {{ current_issue }}</span>
+    </div>
     <ul class="menubar">
       <li @click="handleSelect('customers')" :class="{ selected: selectedIndex === 'customers' }">Customers</li>
       <li @click="handleSelect('orders')" :class="{ selected: selectedIndex === 'orders' }">Orders</li>
@@ -67,6 +91,13 @@ h1 {
 
 .selected {
   text-decoration: underline;
+}
+
+.batch {
+	float: left;
+	/* width: 1em; */
+	margin-left: 1em;
+  text-align: left;
 }
 
 </style>

@@ -92,7 +92,7 @@
   const { customers, loading, error, current_issue } = storeToRefs(useCustomerStore());
   // const { distributors } = storeToRefs(useDistributorStore());
   const custStore = useCustomerStore();
-  const { fetchCustomers, fetchSubTypes, getSettings } = custStore;
+  const { fetchCustomers, fetchSubTypes, getSettings, getBatch } = custStore;
   const distStore = useDistributorStore();
   const params = ref({last_name: '', zip: '', name: ''});
 
@@ -141,6 +141,7 @@
       await getSettings();
       await fetchSubTypes();
       await fetchCustomers();
+      await getBatch();
       // customers.value = custStore.customers;
     } catch (err) {
       error.value = err;

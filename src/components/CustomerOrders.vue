@@ -62,61 +62,61 @@
   </div>
   <div class="customer-orders" v-if="!selectedCustomer"></div>
   <div v-if="listDialogVisible" class="modal-backdrop">
-      <dialog class="my-dialog" open>
-        <h2 v-if="isCancelled" class="error">Cancel Subscription</h2>
-        <h2 v-else-if="renew_id > 0">Renew Subscription</h2>
-        <h2 v-else-if="edit_id > 0">Edit Subscription</h2>
-        <h2 v-else>New Subscription</h2>
-        <!-- <form @submit.prevent="newCustomer"> -->
-          <div v-if="!isCancelled">
-            <div v-if="renew_id <= 0">
-              <span v-for="(subType, index) in sub_types" :key="index">
-                <input type="radio" :id="subType" :value="subType.id" v-model="format_id">
-                <label :for="subType">{{ subType.name }}</label>
-              </span>
-              <br><br>
-            </div>
-            <div v-if="edit_id <= 0">
-              <button type="submit" @click="setYears(1);">1 Year</button>
-              <button type="submit" @click="setYears(2);">2 Years</button>
-              <button type="submit" @click="setYears(3);">3 Years</button>
-              <button type="submit" @click="setYears(99);">Lifetime</button>
-              <br><br>
-            </div>
-            <label for="years">Years: </label>
-            <input type="number" id="years" v-model="years" min="-3" max="100" class="always-show-spinner">
-            <label for="issues">&emsp;Issues: </label>
-            <input type="number" id="issues" v-model="issues" min="-3" max="100" class="always-show-spinner">
-            <br><br>
-            <span v-if="renew_id > 0 || edit_id > 0">Current Exp: {{ exp }}</span>
-            <span>&emsp;New Exp: {{ newExp }}</span>
-          
-            <br><br>
-            <div v-if="!isCancelled">
-              <label for="email">Email: </label>
-              <input type="text" id="sub_email" v-model="sub_email" class="sub_email" tabindex="-1">
-            </div>
-          </div>
-          <div v-else>
-            <span>&nbsp;Exp: {{ exp }}</span>
-            <span v-for="(subType) in sub_types" >
-              <span v-if="format_id==subType.id">&emsp;Type: {{ subType.name }}</span>
+    <dialog class="my-dialog" open>
+      <h2 v-if="isCancelled" class="error">Cancel Subscription</h2>
+      <h2 v-else-if="renew_id > 0">Renew Subscription</h2>
+      <h2 v-else-if="edit_id > 0">Edit Subscription</h2>
+      <h2 v-else>New Subscription</h2>
+      <!-- <form @submit.prevent="newCustomer"> -->
+        <div v-if="!isCancelled">
+          <div v-if="renew_id <= 0">
+            <span v-for="(subType, index) in sub_types" :key="index">
+              <input type="radio" :id="subType" :value="subType.id" v-model="format_id">
+              <label :for="subType">{{ subType.name }}</label>
             </span>
             <br><br>
           </div>
-          <label for="memo">Memo: </label>
-          <textarea id="memo" v-model="memo" class="memo-textarea"></textarea>
-          <br v-if="memoError">
-          <span v-if="memoError" class="error">{{ memoError }}</span>
+          <div v-if="edit_id <= 0">
+            <button type="submit" @click="setYears(1);">1 Year</button>
+            <button type="submit" @click="setYears(2);">2 Years</button>
+            <button type="submit" @click="setYears(3);">3 Years</button>
+            <button type="submit" @click="setYears(99);">Lifetime</button>
+            <br><br>
+          </div>
+          <label for="years">Years: </label>
+          <input type="number" id="years" v-model="years" min="-3" max="100" class="always-show-spinner">
+          <label for="issues">&emsp;Issues: </label>
+          <input type="number" id="issues" v-model="issues" min="-3" max="100" class="always-show-spinner">
           <br><br>
-          <button v-if="isCancelled" type="submit" @click="cancelSubscription();" :disabled="isMemoEmpty">Cancel Subscription</button>
-          <button v-else-if="renew_id > 0" type="submit" @click="renewSubscription(newExp);" :disabled="isMemoEmpty">Renew</button>
-          <button v-else-if="edit_id > 0" type="submit" @click="editSubscription(newExp);" :disabled="isMemoEmpty">Save Edit</button>
-          <button v-else type="submit" @click="newSubscription(newExp);" :disabled="isMemoEmpty">New {{ selectedSubTypeName }}</button>
-          <button type="button" @click="listDialogVisible = false;memo = '';isCancelled = false;">Cancel</button>
-        <!-- </form> -->
-      </dialog>
-	  </div>
+          <span v-if="renew_id > 0 || edit_id > 0">Current Exp: {{ exp }}</span>
+          <span>&emsp;New Exp: {{ newExp }}</span>
+        
+          <br><br>
+          <div v-if="!isCancelled">
+            <label for="email">Email: </label>
+            <input type="text" id="sub_email" v-model="sub_email" class="sub_email" tabindex="-1">
+          </div>
+        </div>
+        <div v-else>
+          <span>&nbsp;Exp: {{ exp }}</span>
+          <span v-for="(subType) in sub_types" >
+            <span v-if="format_id==subType.id">&emsp;Type: {{ subType.name }}</span>
+          </span>
+          <br><br>
+        </div>
+        <label for="memo">Memo: </label>
+        <textarea id="memo" v-model="memo" class="memo-textarea"></textarea>
+        <br v-if="memoError">
+        <span v-if="memoError" class="error">{{ memoError }}</span>
+        <br><br>
+        <button v-if="isCancelled" type="submit" @click="cancelSubscription();" :disabled="isMemoEmpty">Cancel Subscription</button>
+        <button v-else-if="renew_id > 0" type="submit" @click="renewSubscription(newExp);" :disabled="isMemoEmpty">Renew</button>
+        <button v-else-if="edit_id > 0" type="submit" @click="editSubscription(newExp);" :disabled="isMemoEmpty">Save Edit</button>
+        <button v-else type="submit" @click="newSubscription(newExp);" :disabled="isMemoEmpty">New {{ selectedSubTypeName }}</button>
+        <button type="button" @click="listDialogVisible = false;memo = '';isCancelled = false;">Cancel</button>
+      <!-- </form> -->
+    </dialog>
+  </div>
 </template>
 <!-- https://admin.shopify.com/store/2600-magazine/orders/ -->
 <script setup>

@@ -22,6 +22,7 @@ export const useCustomerStore = defineStore({
     schema: null,
     current_issue: null,
     on_sale_date: null,
+    current_batch: null,
   }),
   getters: {
     getCustomerById: (state) => {
@@ -68,6 +69,22 @@ export const useCustomerStore = defineStore({
       console.log("temp sub: ", sub);
       console.log("subs: ", this.subscriptions);
       return sub;
+    },
+    async getBatch() {
+      this.current_batch = null;
+      this.error = null;
+      try {
+        this.current_batch = await API.getCurrentBatch()
+        .then((response) => {
+          return response.data
+        })
+        .catch((error) => {this.error = error; return null});
+      } catch (error) {
+        this.error = error
+        return false;
+      } finally {
+        return true;
+      }
     },
     async getSettings() {
       this.current_issue = null;
@@ -166,7 +183,7 @@ export const useCustomerStore = defineStore({
     },
     async fetchCustomer(id) {
       this.customer = null
-      this.loading = true
+      // this.loading = true
       try {
         this.customer = await API.getCustomerById(id)
         .then((response) => {
@@ -187,7 +204,7 @@ export const useCustomerStore = defineStore({
     },
     async getCustomerOrdersById(customerId) {
       this.orders = []
-      this.loading = true
+      // this.loading = true
       try {
         this.orders = await API.getCustomerOrdersById(customerId)
         .then((response) => {
@@ -205,7 +222,7 @@ export const useCustomerStore = defineStore({
       // console.log("in getCustomerSubscriptionsById: ", customerId);
       if(customerId === undefined) return false;
       this.subscriptions = []
-      this.loading = true
+      // this.loading = true
       try {
         this.subscriptions = await API.getCustomerSubscriptionsById(customerId)
         .then((response) => {
@@ -224,7 +241,7 @@ export const useCustomerStore = defineStore({
     },
     async updateCustomerAddress(customerId, data) {
       console.log("in updateCustomerAddress ", data);
-      this.loading = true
+      // this.loading = true
       let response = null;
       try {
         let addrChange = {
