@@ -23,6 +23,9 @@ export const useCustomerStore = defineStore({
     current_issue: null,
     on_sale_date: null,
     current_batch: null,
+    daily_sheets: [],
+    daily_sheet_items: [],
+    daily_sheet_item: null,
   }),
   getters: {
     getCustomerById: (state) => {
@@ -76,6 +79,39 @@ export const useCustomerStore = defineStore({
       try {
         this.current_batch = await API.getCurrentBatch()
         .then((response) => {
+          return response.data
+        })
+        .catch((error) => {this.error = error; return null});
+      } catch (error) {
+        this.error = error
+        return false;
+      } finally {
+        return true;
+      }
+    },
+    async getDailySheets() {
+      this.daily_sheets = null;
+      this.error = null;
+      try {
+        this.daily_sheets = await API.getDailySheets()
+        .then((response) => {
+          return response.data
+        })
+        .catch((error) => {this.error = error; return null});
+      } catch (error) {
+        this.error = error
+        return false;
+      } finally {
+        return true;
+      }
+    },
+    async getDailySheetItems(id) {
+      this.daily_sheet_items = null;
+      this.error = null;
+      try {
+        this.daily_sheet_items = await API.getDailySheetItems(id)
+        .then((response) => {
+          console.log("getDailySheetItems: ", response.data);
           return response.data
         })
         .catch((error) => {this.error = error; return null});

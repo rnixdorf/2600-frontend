@@ -1,8 +1,9 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeMount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useCustomerStore } from './stores/customer';
+import { useHopeStore } from './stores/hope';
 
 const $router = useRouter();
 const $route = useRoute();
@@ -11,6 +12,7 @@ const selectedIndex = ref('');
 const customerStore = useCustomerStore();
 const { current_batch, current_issue } = storeToRefs(customerStore);
 
+const hopeStore = useHopeStore();
 
 const handleSelect = (index) => {
   console.log("select index: ", index);
@@ -26,8 +28,15 @@ const formattedCreateDate = computed(() => {
   return 'blah';
 });
 
-onMounted(async () => {
+onBeforeMount(async () => {
+  console.log('beforeMount');
   await customerStore.getBatch();
+  await customerStore.getSettings();
+  await hopeStore.getSettings();
+});
+
+onMounted(async () => {
+  
 });
 
 </script>
@@ -45,6 +54,7 @@ onMounted(async () => {
     <ul class="menubar">
       <li @click="handleSelect('customers')" :class="{ selected: selectedIndex === 'customers' }">Customers</li>
       <li @click="handleSelect('orders')" :class="{ selected: selectedIndex === 'orders' }">Orders</li>
+      <li @click="handleSelect('dailySheets')" :class="{ selected: selectedIndex === 'dailySheets' }">Daily Sheets</li>
       <li @click="handleSelect('agencies')" :class="{ selected: selectedIndex === 'agencies' }">Agencies</li>
       <li @click="handleSelect('hope')" :class="{ selected: selectedIndex === 'hope' }">Hope</li>
       <li @click="handleSelect('settings')" :class="{ selected: selectedIndex === 'settings' }">

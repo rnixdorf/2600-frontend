@@ -9,7 +9,7 @@ export const useHopeStore = defineStore({
     ticket: null,
     hopetype: null,
     loading: false,
-    error: null
+    error: null,
   }),
   getters: {
     getHopeTicketById: (state) => {
@@ -22,6 +22,7 @@ export const useHopeStore = defineStore({
       this.hopeTickets = []
       this.loading = true
       try {
+        console.log("fetchHopeTickets hopetype: ",this.hopetype)
         this.hopeTickets = await API.getAllHopeTickets(this.hopetype)
         .then((response) => {return response.data})
         .catch((error) => {this.error = error; return null})
@@ -49,6 +50,24 @@ export const useHopeStore = defineStore({
     },
     setHopeType(type) {
       this.hopetype = type;
+    },
+    async getSettings() {
+      this.error = null;
+      try {
+        await API.getSettings()
+        .then((response) => {
+          this.hopetype = response.data[0].current_hope;
+          console.log("hope getSettings",this.hopetype);
+          return response.data
+        })
+        .catch((error) => {this.error = error; return null});
+        
+      } catch (error) {
+        this.error = error
+        return null;
+      } finally {
+        return true;
+      }
     },
   }
 })

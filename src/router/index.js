@@ -7,6 +7,7 @@ import HopeManagement from '../views/HopeManagement.vue';
 import IncomingOrderManagement from '../views/IncomingOrderManagement.vue';
 import AgencyManagement from '../views/AgencyManagement.vue';
 import SettingsManagement from '../views/SettingsManagement.vue';
+import DailySheetManagement from '../views/DailySheetManagement.vue';
 
 const routes = [
     {
@@ -43,6 +44,12 @@ const routes = [
       path: '/settings', 
       name: 'SettingsManagement',
       component: SettingsManagement, 
+      props: true
+    },
+    { 
+      path: '/dailySheets', 
+      name: 'DailySheetManagement',
+      component: DailySheetManagement, 
       props: true
     },
 ]

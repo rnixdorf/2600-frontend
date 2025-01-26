@@ -93,7 +93,7 @@ import { Label } from '@/components/ui/label'
 
 const { distributors } = storeToRefs(useDistributorStore());
 // const distStore = useDistributorStore();
-const { schema, subscriptions, current_issue } = storeToRefs(useCustomerStore());
+const { schema } = storeToRefs(useCustomerStore());
 const custStore = useCustomerStore();
 const emit = defineEmits(['select-customer','new-customer','rebuild-list']);
 const props = defineProps({
@@ -203,13 +203,16 @@ const processOrder = async (id) => {
 	}
 	let dt = new Date();
 	dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
-	let success = await DataService.insertCustomerOrder(
-		{ fk_customers_id: id,
+	let order_data = {
+		fk_customers_id: id,
 		fk_order_sources_id: 3,
 		fk_order_types_id: 6,
 		enter_date: dt.toISOString().slice(0, 19).replace('T', ' '),
 		memo: orderMemo.value,
-		});
+		fk_batches_id: custStore.current_batch.id,
+	};
+	// console.log("order_data", order_data);
+	let success = await DataService.insertCustomerOrder(order_data);
 	if (!success) {
 		alert("Ups, something happened 🙂", error.message);
 		console.log("Api status ->", error.message);

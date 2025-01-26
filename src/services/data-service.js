@@ -66,7 +66,12 @@ class DataService {
 	getCurrentBatch() {
 		return http.get(`/currentBatch`);
 	}
-
+	getDailySheets() {
+		return http.get(`/dailySheets`);
+	}
+	getDailySheetItems(sheet_id) {
+		return http.get(`/dailySheets/${sheet_id}`);
+	}
 	/********HOPE********************************************** */
 	getAllHopeTickets(type_id) {
 		return http.get(`/hopeTickets/${type_id}`);

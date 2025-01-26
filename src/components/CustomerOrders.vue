@@ -332,6 +332,7 @@
         fk_order_types_id: 6,
         enter_date: dt.toISOString().slice(0, 19).replace('T', ' '),
         memo: memo.value,
+        fk_batches_id: custStore.current_batch.id,
       });
     if (!success) {
       alert("Ups, something happened 🙂", error.message);

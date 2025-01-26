@@ -33,7 +33,8 @@
         await custStore.updateSettings({ current_issue: currentIssue.value, onsale: onSaleDate.value });
         router.push('/');
     };
-    onMounted(() => {
+    onMounted(async () => {
+        await custStore.getSettings();
         currentIssue.value = custStore.current_issue;
         onSaleDate.value = custStore.on_sale_date;
     });

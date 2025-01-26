@@ -1,9 +1,9 @@
 <script setup>
   import { storeToRefs } from 'pinia'
   import { useHopeStore } from '../stores/hope'
-  import { onMounted, ref, computed } from "vue";
+  import { onMounted, ref, computed, onBeforeMount } from "vue";
 
-  const { hopeTickets, loading, error } = storeToRefs(useHopeStore())
+  const { hopeTickets, loading, error, hopetype } = storeToRefs(useHopeStore());
   const hopeStore = useHopeStore();
 
   const params = ref({last_name: '', email: ''});
@@ -15,8 +15,9 @@
   };
 
   onMounted(async () => {
-    hopeStore.setHopeType(1)
-    const success = await hopeStore.fetchHopeTickets(1);
+    await hopeStore.getSettings();
+    hopeStore.setHopeType(hopetype)
+    const success = await hopeStore.fetchHopeTickets(hopetype);
     if (!success) {
       alert("Ups, something happened 🙂", error.message);
       console.log("Api status ->", error.message);

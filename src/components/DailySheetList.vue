@@ -1,8 +1,8 @@
 <template>
-  <div class="customer-list">
-    <h2>Customer List</h2>
+  <div class="dailySheet-list">
+    <h2>Daily Sheet List</h2>
     <div class="searchInputs">
-      <label class="searchLabel">Name</label>
+      <!-- <label class="searchLabel">Name</label>
       <input
             name="lastNameSearch"
             class="search-field textfield-closed"
@@ -29,29 +29,25 @@
             v-model="companyFilter"
         />
         <br>
-        <button @click="lastFilter = '';zipFilter='';companyFilter=''">Clear Search</button>
-        <button @click="listDialogVisible = true;isDialogVisible = false;">New Customer</button>
+        <button @click="lastFilter = '';zipFilter='';companyFilter=''">Clear Search</button> -->
+
     </div>
-    <p v-if="loading">Loading customers...</p>
+    <p v-if="loading">Loading daily sheets...</p>
     <p v-if="error">{{ error.message }}</p>
-    <div v-if="customers.length" class="scrollable-panel">
+    <div v-if="daily_sheets && daily_sheets.length" class="scrollable-panel">
       <ul>
-        <li v-for="customer in customers" :key="customer.id" @click="selectCustomer(customer)">
-          {{ customer.first }} {{ customer.last }}<br>
-          <div v-if="customer.company != ''">{{ customer.company}}</div>
-          <div>{{ customer.address1 }}</div>
-          <div v-if="customer.address2 != ''">{{ customer.address2}}</div>
-          <div v-if="customer.address3 != ''">{{ customer.address3}}</div>
-          <div>{{ customer.city }}, {{ customer.state }} {{ customer.zip }}</div>
-          <div v-if="customer.country != '' && customer.country != 'USA'">{{ customer.country }}</div>
-          <div v-if="customer.email != ''">{{ customer.email }}</div>
+        <li v-for="daily_sheet in daily_sheets" :key="daily_sheet.id" @click="selectDailySheet(daily_sheet)">
+          <div v-if="daily_sheet.name != ''">{{ daily_sheet.name }}</div>
+          <div>Start: {{ new Date(daily_sheet.create_date).toLocaleString() }}</div>
+          <div>End: {{ new Date(daily_sheet.end_date).toLocaleString() }}</div>
+
           <!-- <div v-if="customer.Eformat != ''">{{ customer.Eformat }}</div> -->
           <hr>
         </li>
       </ul>
     </div>
     <div v-else>
-      <p>No customers found</p>
+      <p>No daily sheets found</p>
     </div>
     <div v-if="listDialogVisible" class="modal-backdrop">
       <dialog class="my-dialog" open>
@@ -83,16 +79,17 @@
   import IssueDialog from './IssueDialog.vue';
   // import { Button } from '@/components/ui/button'
   
-  const emit = defineEmits(['select-customer','new-customer','submit-issue','rebuild-list']);
+  const emit = defineEmits(['select-dailySheet','rebuild-dailySheet-list']);
 
   defineExpose({
     rebuildSearch
   });
 
-  const { customers, loading, error, current_issue } = storeToRefs(useCustomerStore());
+
+  const { loading, error, daily_sheets } = storeToRefs(useCustomerStore());
   // const { distributors } = storeToRefs(useDistributorStore());
   const custStore = useCustomerStore();
-  const { fetchCustomers, fetchSubTypes, getSettings, getBatch } = custStore;
+  const { getDailySheets } = custStore;
   const distStore = useDistributorStore();
   const params = ref({last_name: '', zip: '', name: ''});
 
@@ -100,48 +97,22 @@
   const dialogData = ref({});
   
   async function rebuildSearch() {
-    console.log('Rebuilding customer list');
-    await fetchCustomers(params.value);
+    console.log('Rebuilding daily sheet list');
+    await getDailySheets(params.value);
   };
 
-  const selectCustomer = (customer) => {
-    emit('select-customer', customer);
+  const selectDailySheet = (daily_sheet) => {
+    emit('select-dailySheet', daily_sheet);
   };
 
   const listDialogVisible = ref(false);
   const newType = ref('');
 
-  const newCustomer = (type) => {
-    console.log("newCustomer ", dialogData);
-    let cd = custStore.getSubCode(type);
-    emit('new-customer', { sub_code: cd, new_type: type });
-  };
-
-  const newSubCustomer = (data) => {
-    listDialogVisible.value = false;
-    console.log("newSubCustomer ", data);
-    let cd = custStore.getSubCode('S');
-    data.tName = custStore.getSubTypeName(data.format_id);
-    data.tid = data.format_id;
-    data.active = 1;
-    emit('new-customer', { sub_code: cd, new_type: 'S', data: data });
-  };
-  // const _keyListener = function(e) {
-  //   console.log(e.key);
-  //   if ( e.key === "n" || e.key === "N" ) {
-  //       e.preventDefault(); // present "Save Page" from getting triggered.
-
-  //       listDialogVisible.value = true
-  //   }
-  // };
 
   onMounted(async () => {
     loading.value = true;
     try {
-      await getBatch();
-      // await getSettings();
-      await fetchSubTypes();
-      await fetchCustomers();
+      await getDailySheets();
       // customers.value = custStore.customers;
     } catch (err) {
       error.value = err;
@@ -149,18 +120,6 @@
       loading.value = false;
     }
 
-    // const success = await custStore.fetchCustomers({});
-    // if (!success) {
-    //   alert("Ups, something happened 🙂", error.message);
-    //   console.log("Api status ->", error.message);
-    // }
-    const success2 = await distStore.fetchDistributors({});
-    if (!success2) {
-      alert("Ups, something happened distStore 🙂", error.message);
-      console.log("Api status ->", error.message);
-    }
-    
-    // window.addEventListener('keydown', _keyListener);
   });
 
   onUnmounted(() => {
@@ -237,7 +196,7 @@
     /* max-height: calc(80vh - 80px); */
   }
 
-  .customer-list {
+  .dailySheet-list {
     width: 200px;
     background: #f5f5f5;
     /* padding-bottom: 10px; */
@@ -258,25 +217,25 @@
   font-weight: bold;
 }  */
 
-.customer-list h2 {
+.dailySheet-list h2 {
   line-height: .5;
 }
 
-.customer-list ul {
+.dailySheet-list ul {
   list-style-type: none;
   padding: 0;
   line-height: 1.1;
 }
-.customer-list li {
+.dailySheet-list li {
   cursor: pointer;
   font-size: .9em;
   /* padding: 2px; */
 }
-.customer-list li:hover {
+.dailySheet-list li:hover {
   background: #ddd;
 }
 
-.customer-list button {
+.dailySheet-list button {
 	background-color: lightgray;
   margin-top: 10px;
   margin-left: 20px;
