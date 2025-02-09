@@ -89,11 +89,11 @@ export const useCustomerStore = defineStore({
         return true;
       }
     },
-    async getDailySheets() {
+    async getDailySheets(params) {
       this.daily_sheets = null;
       this.error = null;
       try {
-        this.daily_sheets = await API.getDailySheets()
+        this.daily_sheets = await API.getDailySheets(params)
         .then((response) => {
           return response.data
         })
@@ -111,7 +111,7 @@ export const useCustomerStore = defineStore({
       try {
         this.daily_sheet_items = await API.getDailySheetItems(id)
         .then((response) => {
-          console.log("getDailySheetItems: ", response.data);
+          // console.log("getDailySheetItems: ", response.data);
           return response.data
         })
         .catch((error) => {this.error = error; return null});
@@ -132,7 +132,7 @@ export const useCustomerStore = defineStore({
           // console.log("settings: ", response.data[0]);
           this.current_issue = response.data[0].current_issue;
           this.on_sale_date = response.data[0].onsale.substring(0,10);
-          console.log(this.current_issue, this.on_sale_date);
+          // console.log(this.current_issue, this.on_sale_date);
           return response.data
         })
         .catch((error) => {this.error = error; return null});
@@ -273,7 +273,20 @@ export const useCustomerStore = defineStore({
       }
     },
     async fetchIncomingOrders(params) {
-      return [];
+      this.incoming_orders = []
+      // this.loading = true
+      try {
+        this.incoming_orders = await API.getIncomingOrders()
+        .then((response) => {
+          return response.data
+        })
+      } catch (error) {
+        this.error = error;
+        return false;
+      } finally {
+        this.loading = false
+        return true;
+      }
     },
     async updateCustomerAddress(customerId, data) {
       console.log("in updateCustomerAddress ", data);

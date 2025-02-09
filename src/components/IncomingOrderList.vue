@@ -1,26 +1,24 @@
 <template>
-    <div class="incoming-order-list">
-        <h2>Orders List</h2>
-        
-        <p v-if="loading">Loading incoming orders...</p>
-        <p v-if="error">{{ error.message }}</p>
-        <div v-if="incoming-orders">
-            <ul>
+  <div class="incoming-order-list">
+      <h2>Unprocessed Orders ({{ incoming_orders.length }})</h2>
+      
+      <p v-if="loading">Loading incoming orders...</p>
+      <p v-if="error">{{ error.message }}</p>
+      <div v-if="incoming_orders" class="scrollable-panel">
+          <ul>
             <li v-for="order in incoming_orders" :key="order.id" @click="selectIncomingOrder(order)">
-                {{ customer.First }} {{ customer.Last }}<br>
-                <div v-if="customer.Company != ''">{{ customer.Company}}</div>
-                <div>{{ customer.Address1 }}</div>
-                <div v-if="customer.Address2 != ''">{{ customer.Address2}}</div>
-                <div v-if="customer.Address3 != ''">{{ customer.Address3}}</div>
-                <div>{{ customer.City }}, {{ customer.State }} {{ customer.Zip }}</div>
-                <div v-if="customer.country != '' && customer.country != 'USA'">{{ customer.country }}</div>
-                <div v-if="customer.email != ''">{{ customer.email }}</div>
-                <div v-if="customer.Eformat != ''">{{ customer.Eformat }}</div>
-                <hr>
+              {{ order.order_json.customer.first_name + " " + order.order_json.customer.last_name }}
+              {{ order.order_id }}
+              <br>
+              {{ new Date(order.order_date).toLocaleString() }}
+              <hr>
             </li>
-            </ul>
-        </div>
+          </ul>
+      </div>
+      <div v-else>
+      <p>No Orders found</p>
     </div>
+  </div>
 </template>
 
 <script setup>
@@ -84,3 +82,52 @@
   //   }
   // });
 </script>
+
+<style scoped>
+  .scrollable-panel {
+    flex-grow: 1; /* Take up remaining space */
+    overflow-y: auto;
+    /* height: calc(100vh - 180px); */
+    /* max-height: calc(80vh - 80px); */
+  }
+
+  .incoming-order-list {
+    width: 200px;
+    background: #f5f5f5;
+    /* padding-bottom: 10px; */
+    flex: 1;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+  }
+
+
+  .incoming-order-list h2 {
+    line-height: .5;
+  }
+
+  .incoming-order-list ul {
+    list-style-type: none;
+    padding: 0;
+    line-height: 1.1;
+  }
+  .incoming-order-list li {
+    cursor: pointer;
+    font-size: .9em;
+    /* padding: 2px; */
+  }
+  .incoming-order-list li:hover {
+    background: #ddd;
+  }
+
+  .incoming-order-list button {
+    background-color: lightgray;
+    margin-top: 10px;
+    margin-left: 20px;
+    width: 120px;
+    align-self: center;
+    height: 30px;
+    padding: 0;
+    color: black;
+  }
+</style>

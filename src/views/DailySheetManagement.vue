@@ -25,7 +25,7 @@
     });
   
     const rebuildList = () => {
-      console.log('Rebuilding daily sheet list');
+      // console.log('Rebuilding daily sheet list');
       if (dailySheetList.value) {
         dailySheetList.value.rebuildSearch();
       }
@@ -40,20 +40,20 @@
       isDialogVisible.value = true;
     };
   
-    const closeDialog = () => {
-      isDialogVisible.value = false;
-    };
+    // const closeDialog = () => {
+    //   isDialogVisible.value = false;
+    // };
   
-    const handleOpenDialog = (data) => {
-      console.log('Data from CustomerForm:', data);
-      // Handle the data as needed
-      openDialog();
-    };
+    // const handleOpenDialog = (data) => {
+    //   // console.log('Data from CustomerForm:', data);
+    //   // Handle the data as needed
+    //   openDialog();
+    // };
     
-    const handleDialogSubmit = (data) => {
-      console.log('Data from dialog:', data);
-      // Handle the data as needed
-    };
+    // const handleDialogSubmit = (data) => {
+    //   console.log('Data from dialog:', data);
+    //   // Handle the data as needed
+    // };
   
   </script>
     

@@ -4,8 +4,9 @@
 			<h2>Daily Sheet {{ dailySheet.name }}
 			<br><br>
 			{{ new Date(dailySheet.create_date).toLocaleString() }}</h2>
-			<div v-for="item in selectedDailySheet" :key="item.enter_date" class="dailySheet-item">
-				<div>Rec Num: {{ item.customer_id }}&emsp;Customer: {{ item.customer_name }}</div>
+			<div v-for="item in selectedDailySheet" :key="item.enter_date" 
+					class="dailySheet-item" @dblclick="handleDoubleClick(item)">
+				<div >Rec Num: {{ item.customer_id }}&emsp;Customer: {{ item.customer_name }}</div>
 				<span>
 					<button v-if="item.orders[0].order_lines && item.orders[0].order_lines.length" @click="toggleCollapse(item.bho_id)" class="small-button" >
 						<Icon :icon="iconPlus" />
@@ -58,6 +59,12 @@ const collapsedItems = ref({});
 
 const toggleCollapse = (itemId) => {
 	collapsedItems.value[itemId] = !collapsedItems.value[itemId];
+};
+
+const handleDoubleClick = (item) => {
+	console.log('Div was double-clicked');
+	console.log('Item:', item);
+	// Add your double-click logic here
 };
 
 onMounted(() => {

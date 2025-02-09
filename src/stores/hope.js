@@ -57,7 +57,7 @@ export const useHopeStore = defineStore({
         await API.getSettings()
         .then((response) => {
           this.hopetype = response.data[0].current_hope;
-          console.log("hope getSettings",this.hopetype);
+          // console.log("hope getSettings",this.hopetype);
           return response.data
         })
         .catch((error) => {this.error = error; return null});

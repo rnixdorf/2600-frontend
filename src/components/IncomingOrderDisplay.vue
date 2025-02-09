@@ -1,34 +1,37 @@
 <template>
-    <div class="incoming-order-display" v-if="selectedIncomingOrder">
-      <h2>Edit Customer  {{ selectedIncomingOrder.Last }}</h2>
+  <div class="incoming-order-display">
+    <div v-if="selectedIncomingOrder">
+      <h2>View Order  {{ selectedIncomingOrder.order_json.customer.last_name }}</h2>
       <form @submit.prevent="updateCustomer">
         <!-- <div style="display: inline-block;">
           <button type="submit" :disabled="!isFormValid">Save</button>
           <button type="cancel" @click.prevent="onCancel">Cancel</button>
         </div> -->
         <div>
-          <p class="customer-entry" v-for="(val, k) in selectedIncomingOrder" :label=k :key="k">
-            <label for=k>{{ k }}:</label>
-            <input v-if="inputType[k]=='checkbox'" type="checkbox" id=k v-model="selectedIncomingOrder[k]" />
-            <input v-else-if="inputType[k]=='readonly'" id=k v-model="selectedIncomingOrder[k]" readonly/>
-            <span v-else-if="inputType[k]=='string'" id=k >{{ selectedIncomingOrder[k] }}</span>
-            
-            
-            <input v-else id=k v-model="selectedIncomingOrder[k]" />
+          <p class="order-entry" v-for="(val, k) in orderFieldDisplayOrder" :label=k :key="k" :id="val.name + 'Label'">
+            <label :for="val.name">{{ val.display }}</label>
+            <span :id="val.name" >{{ selectedIncomingOrder[val.name] }}</span>
+
             <br>
             <span v-for="(error, index) of v$.$errors" :key="index">
               <p v-if="k==error.$property" class="err">{{ error.$message }}</p>
             </span>
           </p>
+          <label>Order Lines</label>
+          <p class="order-entry" v-for="(val, k) in selectedIncomingOrder.order_lines" :label=k :key="k" >
+            <label>{{ val.quantity }} ea. - </label>
+            <span :id="val.id" >{{ val.item }}</span>
+          </p>
         </div>
-        <div style="display: inline-block;">
+        <!-- <div style="display: inline-block;">
           <button type="submit" :disabled="!isFormValid">Save</button>
           <button type="cancel" @click.prevent="onCancel">Cancel</button>
-        </div>
+        </div> -->
       </form>
     </div>
-    <div class="customer-form" v-if="!selectedCustomer"></div>
-  </template>
+    <div v-if="!selectedIncomingOrder"></div>
+  </div>
+</template>
 
 <script setup>
 import { ref, watch, computed } from 'vue';
@@ -47,18 +50,13 @@ const props = defineProps({
 
 const selectedIncomingOrder = ref(null);
 
-const inputType = {
-  "Overseas":"checkbox",
-  "Corporate":"checkbox",
-  "Sample":"checkbox",
-  "Envelope":"checkbox",
-  "Digest":"checkbox",
-  "id":"string",
-  "create_date":"string",
-  "update_date":"string",
-  "Subtype":"subtypeRadio",
-  "Eformat":"eformatRadio",
-}
+const orderFieldDisplayOrder = [
+	{name:"id",display:"Order Num:"},
+	{name:"first_name",display:"First:"},
+	{name:"last_name",display:"Last:"},
+	{name:"email",display:"Email:"},
+  {name:"customer_note",display:"Note:"},
+]
 
 const rules = computed(() => {
   return {
@@ -77,7 +75,7 @@ const isFormValid = async () => {
 
 watch(
   () => props.order,
-  (newVal) => {
+  async (newVal) => {
     if (newVal) {
         selectedIncomingOrder.value = { ...newVal }; // Shallow copy to avoid direct mutation
     }
@@ -111,3 +109,41 @@ const updateCustomer = async () => {
   }
 };
 </script>
+
+<style scoped>
+  .incoming-order-display h2 {
+    line-height: .5;
+  }
+  .incoming-order-display {
+    /* width: 200px; */
+    /* padding-bottom: 10px; */
+    flex: 1.5;
+    font-weight: bold;
+  }
+
+  .incoming-order-display form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .order-entry {
+    margin: 5px 0 5px 0;
+    /* display: flex; */
+    /* flex-direction: row; */
+  }
+  .order-entry label {
+    /* display: inline-block; */
+    text-transform: capitalize;
+    float: left;
+    text-align: right;
+    width:6em;
+  }
+
+  .order-entry span {
+    /* display: inline-block; */
+    float: left;
+    margin-left: 1em;
+    /* width: calc(100% - 12em); */
+    font-weight: bold;
+  }
+</style>

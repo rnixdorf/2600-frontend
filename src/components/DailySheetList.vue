@@ -2,7 +2,7 @@
   <div class="dailySheet-list">
     <h2>Daily Sheet List</h2>
     <div class="searchInputs">
-      <!-- <label class="searchLabel">Name</label>
+      <label class="searchLabel">Name</label>
       <input
             name="lastNameSearch"
             class="search-field textfield-closed"
@@ -11,26 +11,10 @@
             v-model="lastFilter"
         />
       <br>
-      <label class="searchLabel">Zipcode</label>
-      <input
-          name="zipcodeSearch"
-          class="search-field textfield-closed"
-          type="search"
-          placeholder="Search Zipcode" 
-          v-model="zipFilter"
-      />
-      <br>
-      <label class="searchLabel">Company</label>
-      <input
-            name="companySearch"
-            class="search-field textfield-closed"
-            type="search"
-            placeholder="Search Company" 
-            v-model="companyFilter"
-        />
-        <br>
-        <button @click="lastFilter = '';zipFilter='';companyFilter=''">Clear Search</button> -->
 
+      <button @click="runSearch()">Search</button>
+      <button @click="lastFilter = '';runSearch()">Clear Search</button>
+        
     </div>
     <p v-if="loading">Loading daily sheets...</p>
     <p v-if="error">{{ error.message }}</p>
@@ -85,19 +69,18 @@
     rebuildSearch
   });
 
-
   const { loading, error, daily_sheets } = storeToRefs(useCustomerStore());
   // const { distributors } = storeToRefs(useDistributorStore());
   const custStore = useCustomerStore();
   const { getDailySheets } = custStore;
   const distStore = useDistributorStore();
-  const params = ref({last_name: '', zip: '', name: ''});
+  const params = ref({name: ''});
 
   const isDialogVisible = ref(false);
   const dialogData = ref({});
   
   async function rebuildSearch() {
-    console.log('Rebuilding daily sheet list');
+    // console.log('Rebuilding daily sheet list');
     await getDailySheets(params.value);
   };
 
@@ -126,43 +109,21 @@
     // window.removeEventListener('keydown', _keyListener);
   });
 
+  const runSearch = async () => {
+    await getDailySheets(params.value);
+  };
+
   const lastFilter = computed({
     get() {
       // console.log("in last getter");
       return params.value.name;
     },
     async set(val) {
-      // console.log("in last setter ", val);
-      // custStore.last_name = val;
-      // console.log("in setter ", custStore.last_name);
-      // custStore.filterCustomer();
       params.value.name = val;
-      console.log("params: ", params.value);
-      await custStore.fetchCustomers(params.value);
+      // console.log("params: ", params.value);
     }
   });
-  const zipFilter = computed({
-    get() {
-      // console.log("in zip getter");
-      return params.value.zip;
-    },
-    async set(val) {
-      // console.log("in zip setter ", val);
-      params.value.zip = val;
-      await custStore.fetchCustomers(params.value);
-    }
-  });
-  const companyFilter = computed({
-    get() {
-      // console.log("in zip getter");
-      return params.value.company;
-    },
-    async set(val) {
-      // console.log("in zip setter ", val);
-      params.value.company = val;
-      await custStore.fetchCustomers(params.value);
-    }
-  });
+
 </script>
 
 <style scoped>
@@ -200,7 +161,7 @@
     width: 200px;
     background: #f5f5f5;
     /* padding-bottom: 10px; */
-    flex: 1;
+    flex: .75;
     font-weight: bold;
     display: flex;
     flex-direction: column;

@@ -15,13 +15,13 @@ const { current_batch, current_issue } = storeToRefs(customerStore);
 const hopeStore = useHopeStore();
 
 const handleSelect = (index) => {
-  console.log("select index: ", index);
+  // console.log("select index: ", index);
   selectedIndex.value = index;
   $router.push('/' + index);
 };
 
 const formattedCreateDate = computed(() => {
-  console.log('current_batch: ', current_batch.value);
+  // console.log('current_batch: ', current_batch.value);
   if (current_batch.value && current_batch.value.create_date) {
     return new Date(current_batch.value.create_date).toLocaleString();
   }
@@ -29,7 +29,7 @@ const formattedCreateDate = computed(() => {
 });
 
 onBeforeMount(async () => {
-  console.log('beforeMount');
+  // console.log('beforeMount');
   await customerStore.getBatch();
   await customerStore.getSettings();
   await hopeStore.getSettings();

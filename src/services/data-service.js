@@ -48,6 +48,10 @@ class DataService {
 		return http.post(`/customerOrders`, data);
 	}
 
+	getIncomingOrders() {
+		return http.get(`/incomingOrders`);
+	}
+
 	/********Distributors********************************************** */
 	getAllDistributors() {
 		return http.get("/distributors");
@@ -66,8 +70,8 @@ class DataService {
 	getCurrentBatch() {
 		return http.get(`/currentBatch`);
 	}
-	getDailySheets() {
-		return http.get(`/dailySheets`);
+	getDailySheets(data) {
+		return http.post(`/dailySheets`,data);
 	}
 	getDailySheetItems(sheet_id) {
 		return http.get(`/dailySheets/${sheet_id}`);

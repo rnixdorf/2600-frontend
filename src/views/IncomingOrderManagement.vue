@@ -1,8 +1,8 @@
 <template>
     <div class="incoming-order-management">
       <IncomingOrderList @select-incoming-order="handleSelectIncomingOrder" />
-      <IncomingOrderDisplay :incoming_order="selectedIncomingOrder" @select-incoming-order="handleSelectIncomingOrder"/>
-      <!-- <CustomerOrders :incoming_order="selectedIncomingOrder" /> -->
+      <IncomingOrderDisplay :order="selectedIncomingOrder" @select-incoming-order="handleSelectIncomingOrder"/>
+      <IncomingOrderMatching :order="selectedIncomingOrder" />
     </div>
   </template>
   
@@ -10,6 +10,7 @@
   import { ref } from 'vue';
   import IncomingOrderList from '../components/IncomingOrderList.vue';
   import IncomingOrderDisplay from '../components/IncomingOrderDisplay.vue';
+  import IncomingOrderMatching from '../components/IncomingOrderMatching.vue';
 //   import CustomerOrders from '../components/CustomerOrders.vue';
 
   const selectedIncomingOrder = ref(null);
@@ -19,9 +20,14 @@
   };
   </script>
   
-  <style scoped>
+<style scoped>
+  html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+  }
   .incoming-order-management {
     display: flex;
-    flex-wrap:wrap; 
+    height: calc(100vh - 125px);
   }
-  </style>
+</style>
