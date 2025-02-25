@@ -1,7 +1,7 @@
 <template>
     <div class="incoming-order-management">
       <IncomingOrderList @select-incoming-order="handleSelectIncomingOrder" />
-      <IncomingOrderDisplay :order="selectedIncomingOrder" @select-incoming-order="handleSelectIncomingOrder"/>
+      <IncomingOrderDisplay :order="selectedIncomingOrder" />
       <IncomingOrderMatching :order="selectedIncomingOrder" />
     </div>
   </template>

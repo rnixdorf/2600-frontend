@@ -43,27 +43,28 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h1>2600 Magazine</h1>
-    <div class="batch">
-      <span v-if="current_batch != null" >Current Batch: {{ current_batch.id }}</span>
-      <br>
-      <span>{{ formattedCreateDate }}</span>
-      <br>
-      <span>Current Issue: {{ current_issue }}</span>
+    <div>
+      <h1>2600 Magazine</h1>
+      <div class="batch">
+        <span v-if="current_batch != null" >Current Batch: {{ current_batch.id }}</span>
+        <br>
+        <span>{{ formattedCreateDate }}</span>
+        <br>
+        <span>Current Issue: {{ current_issue }}</span>
+      </div>
+      <ul class="menubar">
+        <li @click="handleSelect('customers')" :class="{ selected: selectedIndex === 'customers' }">Customers</li>
+        <li @click="handleSelect('orders')" :class="{ selected: selectedIndex === 'orders' }">Orders</li>
+        <li @click="handleSelect('dailySheets')" :class="{ selected: selectedIndex === 'dailySheets' }">Daily Sheets</li>
+        <li @click="handleSelect('agencies')" :class="{ selected: selectedIndex === 'agencies' }">Agencies</li>
+        <li @click="handleSelect('hope')" :class="{ selected: selectedIndex === 'hope' }">Hope</li>
+        <li @click="handleSelect('settings')" :class="{ selected: selectedIndex === 'settings' }">
+          <i class="fas fa-cog"></i>
+        </li>
+      </ul>
     </div>
-    <ul class="menubar">
-      <li @click="handleSelect('customers')" :class="{ selected: selectedIndex === 'customers' }">Customers</li>
-      <li @click="handleSelect('orders')" :class="{ selected: selectedIndex === 'orders' }">Orders</li>
-      <li @click="handleSelect('dailySheets')" :class="{ selected: selectedIndex === 'dailySheets' }">Daily Sheets</li>
-      <li @click="handleSelect('agencies')" :class="{ selected: selectedIndex === 'agencies' }">Agencies</li>
-      <li @click="handleSelect('hope')" :class="{ selected: selectedIndex === 'hope' }">Hope</li>
-      <li @click="handleSelect('settings')" :class="{ selected: selectedIndex === 'settings' }">
-        <i class="fas fa-cog"></i>
-      </li>
-    </ul>
+    <RouterView />
   </div>
-  <RouterView />
-
 </template>
 
 <style scoped>

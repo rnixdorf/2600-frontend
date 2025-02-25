@@ -52,6 +52,10 @@ class DataService {
 		return http.get(`/incomingOrders`);
 	}
 
+	getMatchingCustomers(data) {
+		return http.post(`/orderMatching`, data);
+	}
+
 	/********Distributors********************************************** */
 	getAllDistributors() {
 		return http.get("/distributors");

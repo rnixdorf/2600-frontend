@@ -76,9 +76,10 @@
       <p v-if="error">{{ error.message }}</p>
       <div v-if="hopeTickets">
         <p v-for="ticket in hopeTickets" :key="ticket.id" @click="selectHope(ticket)">
-          <!-- <RouterLink :to="`/hopeTicket/${ticket.id}`"> -->
-            Order num: {{ ticket.order_num }}&emsp;Qty: {{ ticket.quantity }}<br>
-            {{ ticket.first_name }} {{ ticket.last_name }}<br>
+            Order num: {{ ticket.order_num }}&emsp;Qty: {{ ticket.quantity }}
+            <br>
+            {{ ticket.first_name }} {{ ticket.last_name }}
+            <br>
             <div v-if="ticket.email != ''">{{ ticket.email }}</div>
           <hr>
         </p>

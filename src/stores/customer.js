@@ -288,6 +288,19 @@ export const useCustomerStore = defineStore({
         return true;
       }
     },
+    async getMatchingCustomers(data) {
+      // this.loading = true
+      try {
+        let response = await API.getMatchingCustomers(data)
+        console.log("response.data:",response.data);
+        return response.data
+      } catch (error) {
+        this.error = error;
+        return false;
+      } finally {
+        this.loading = false;
+      }
+    },
     async updateCustomerAddress(customerId, data) {
       console.log("in updateCustomerAddress ", data);
       // this.loading = true
