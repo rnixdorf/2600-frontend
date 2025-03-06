@@ -56,6 +56,7 @@
 				<ul>
 					<li v-for="customer in matches.customers" :key="matches.customers.id" @click="selectCustomer(customer)">
 						{{ customer.name }}<br>
+						
 						<div v-if="customer.company != ''">{{ customer.company}}</div>
 						<div>{{ customer.address1 }}</div>
 						<div v-if="customer.address2 != ''">{{ customer.address2}}</div>
@@ -70,15 +71,23 @@
 			</div>
 		</div>
     </div>
+	<CompareDialog
+		:selectedCustomer="selectedCustomer"
+		:selectedIncomingOrder="selectedIncomingOrder"
+		v-if="showCompareDialog"
+		@close="handleClose"
+	/>
 </template>
 
 <script setup>
 import { ref, watch, computed } from 'vue';
-import DataService from "../services/data-service.js";
+// import DataService from "../services/data-service.js";
 import { useCustomerStore } from '../stores/customer'
 const custStore = useCustomerStore();
+import CompareDialog from './CompareDialog.vue';
 
-
+const showCompareDialog = ref(false);
+const selectedCustomer = ref(null);
 const selectedIncomingOrder = ref(null);
 const matches = ref({});
 const props = defineProps({
@@ -172,7 +181,18 @@ const zipFilter = computed({
     }
 });
 
+const selectCustomer = (customer) => {
+	selectedCustomer.value = customer;
+	openCompareDialog();
+}
 
+const openCompareDialog = () => {
+	showCompareDialog.value = true;
+}
+
+const handleClose = (data) => {
+	showCompareDialog.value = false;
+};
 </script>
 
 <style scoped>

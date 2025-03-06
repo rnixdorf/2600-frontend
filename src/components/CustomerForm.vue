@@ -173,15 +173,6 @@ const orderMemo = ref('');
 const orderMemoError = ref('');
 const isMemoEmpty = computed(() => !orderMemo.value);
 
-// const validateMemo = () => {
-// 	if (!orderMemo.value) {
-// 		orderMemoError.value = 'Memo is required';
-// 		return false;
-// 	}
-// 	orderMemoError.value = '';
-// 	return true;
-// };
-
 const openDialog = () => {
 //   dialogData.value = { message: 'Initial data from parent' }; // Replace with actual data
   dialogVisible.value = true;
@@ -190,11 +181,6 @@ const openDialog = () => {
 const closeDialog = () => {
 	dialogVisible.value = false;
 };
-
-// const handleSubmit = (data) => {
-//   console.log('Submitted data:', data);
-//   closeDialog();
-// };
 
 const processOrder = async (id) => {
 	console.log("processOrder CustomerForm", id);
