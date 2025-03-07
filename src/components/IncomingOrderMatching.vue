@@ -38,7 +38,7 @@
 			<hr>
 			<div v-if="matches.orderQ" class="single-panel">
 				<ul>
-					<li v-for="pOrder in matches.orderQ" :key="matches.orderQ.id" @click="selectCustomer(customer)">
+					<li v-for="pOrder in matches.orderQ" :key="matches.orderQ.id" @click="selectCustomer(pOrder)">
 						<span>Previous Order Match</span><br>
 						{{ pOrder.name }}<br>
 						<div v-if="pOrder.company != ''">{{ pOrder.company}}</div>
@@ -147,7 +147,7 @@ watch(
 				params.value.prev_order = '';
 			}
 			let check = await custStore.getMatchingCustomers(params.value);
-			console.log(check);
+			// console.log(check);
 			matches.value = check;
 		}
 	}
