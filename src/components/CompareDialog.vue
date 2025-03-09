@@ -1,10 +1,11 @@
 <!-- CompareDialog.vue -->
 <template>
-	<v-dialog v-model="dialog" max-width="600px">
+	<v-dialog v-model="dialog" class="compare-dialog-form">
 		<v-card>
 			<v-card-title>
 				<span class="headline">Compare Customer and Incoming Order</span>
 			</v-card-title>
+			<br>
 			<v-card-actions>
 				<v-spacer></v-spacer>
 				<button color="blue darken-1" text @click="closeDialog">Close</button>
@@ -12,30 +13,32 @@
 			<v-card-text>
 				<v-container>
 					<v-row>
-						<v-col cols="6">
-							<h3>Customer</h3>
-							<p v-for="(value, key) in selectedCustomer" :key="key">
-								{{ key }}: {{ value }}
-							</p>
-						</v-col>
-						<v-col cols="6">
-							<h3>Incoming Order</h3>
-							<p v-for="(value, key) in selectedIncomingOrder" :key="key">
-								{{ key }}: {{ value }}
-							</p>
-						</v-col>
-					</v-row>
-					<v-row>
-						<v-col cols="12">
+						<v-col cols="24">
 							<h3>Comparison</h3>
 							<p v-for="(comparison, key) in comparisons" :key="key">
-								{{ key }}: {{ comparison }}
+								{{ key }}
+								<div>
+									Customer
+									<input type="radio" :value="comparison.customer" :id="'customer_'+comparison.name" :name="comparison.name" :checked="comparison.customer==comparison.value">
+									<label :for="'customer_'+comparison.name">{{comparison.customer}}</label>
+									<br>
+									Order
+									<input type="radio" :value="comparison.order" :id="'order_'+comparison.name" :name="comparison.name" :checked="comparison.order==comparison.value">
+									<label :for="'order_'+comparison.name">{{comparison.order}}</label>
+									<!-- <span v-for="comp in comparison" :key="comp.key">
+										{{ comp.name }}:
+										
+										<input type="radio" :checked="comp.checkValue" :id="comp.checkName">
+										<label :for="comp.checkName">{{ comp.value }}</label>
+
+										&emsp;
+									</span> -->
+								</div>
 							</p>
 						</v-col>
 					</v-row>
 				</v-container>
 			</v-card-text>
-
 		</v-card>
 	</v-dialog>
 </template>
@@ -58,7 +61,7 @@ const props = defineProps({
 		required: true
 	}
 });
-const emit = defineEmits(['update:modelValue', 'close']);
+const emit = defineEmits(['close']);
 const dialog = ref(props.modelValue);
 
 const compareFieldDisplayOrder = [
@@ -99,47 +102,144 @@ const comparisons = computed(() => {
 		}
 		if( value.name == 'phone' )
 		{
-			if( check[value.name] == '' )
-			{
-				check[value.name] = ' ';
-			}
-			if( props.selectedCustomer[value.name] == '' )
-			{
-				props.selectedCustomer[value.name] = ' ';
-			}
-			const checkPhone = parsePhoneNumberWithError(check[value.name], check["countryCodeV2"]);
-			const customerPhone = parsePhoneNumberWithError(props.selectedCustomer[value.name], check["countryCodeV2"]);
-			if( checkPhone && customerPhone )
-			{
-				if( checkPhone.isValid() && customerPhone.isValid() )
+			console.log("phone", check[value.name], props.selectedCustomer[value.name]);
+			// if( check[value.name] == '' )
+			// {
+			// 	check[value.name] = ' ';
+			// }
+			// if( props.selectedCustomer[value.name] == '' )
+			// {
+			// 	props.selectedCustomer[value.name] = ' ';
+			// }
+			try {
+				const checkPhone = parsePhoneNumberWithError(check[value.name], check["countryCodeV2"]);
+				const customerPhone = parsePhoneNumberWithError(props.selectedCustomer[value.name], check["countryCodeV2"]);
+				if( checkPhone && customerPhone )
 				{
-					if( checkPhone.number == customerPhone.number )
+					if( checkPhone.isValid() && customerPhone.isValid() )
 					{
-						result[value.display] = 'Match';
+						if( checkPhone.number == customerPhone.number )
+						{
+							// result[value.display] = 'Match';
+						}
+						else
+						{
+							result[value.display] = {
+								"customer":props.selectedCustomer[value.name],
+								"order":check[value.name],
+								"value":props.selectedCustomer[value.name],
+								"name":value.name
+							};
+							// result[value.display] = {};
+							// result[value.display]["customer"] = {};
+							// result[value.display]["customer"]["name"] = "Customer";
+							// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
+							// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
+							// result[value.display]["customer"]["checkValue"] = 1;
+							// result[value.display]["order"] = {};
+							// result[value.display]["order"]["name"] = "Order";
+							// result[value.display]["order"]["value"] = check[value.name];
+							// result[value.display]["order"]["checkName"] = "order_" + value.name;
+							// result[value.display]["order"]["checkValue"] = 0;
+						}
 					}
 					else
 					{
-						result[value.display] = 'Mismatch';
+						result[value.display] = {
+							"customer":props.selectedCustomer[value.name],
+							"order":check[value.name],
+							"value":props.selectedCustomer[value.name],
+							"name":value.name
+						};
+						// result[value.display] = {};
+						// result[value.display]["customer"] = {};
+						// result[value.display]["customer"]["name"] = "Customer";
+						// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
+						// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
+						// result[value.display]["customer"]["checkValue"] = 1;
+						// result[value.display]["order"] = {};
+						// result[value.display]["order"]["name"] = "Order";
+						// result[value.display]["order"]["value"] = check[value.name];
+						// result[value.display]["order"]["checkName"] = "order_" + value.name;
+						// result[value.display]["order"]["checkValue"] = 0;
 					}
 				}
 				else
 				{
-					result[value.display] = 'Mismatch';
+					result[value.display] = {
+						"customer":props.selectedCustomer[value.name],
+						"order":check[value.name],
+						"value":props.selectedCustomer[value.name],
+						"name":value.name
+					};
+					// result[value.display] = {};
+					// result[value.display]["customer"] = {};
+					// result[value.display]["customer"]["name"] = "Customer";
+					// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
+					// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
+					// result[value.display]["customer"]["checkValue"] = 1;
+					// result[value.display]["order"] = {};
+					// result[value.display]["order"]["name"] = "Order";
+					// result[value.display]["order"]["value"] = check[value.name];
+					// result[value.display]["order"]["checkName"] = "order_" + value.name;
+					// result[value.display]["order"]["checkValue"] = 0;
 				}
-			}
-			else
-			{
-				result[value.display] = 'Mismatch';
+			} catch (e) {
+				console.log("error", e);
+				result[value.display] = {
+					"customer":props.selectedCustomer[value.name],
+					"order":check[value.name],
+					"value":props.selectedCustomer[value.name],
+					"name":value.name
+				};
+				// result[value.display] = {};
+				// result[value.display]["customer"] = {};
+				// result[value.display]["customer"]["name"] = "Customer";
+				// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
+				// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
+				// result[value.display]["customer"]["checkValue"] = 1;
+				// result[value.display]["order"] = {};
+				// result[value.display]["order"]["name"] = "Order";
+				// result[value.display]["order"]["value"] = check[value.name];
+				// result[value.display]["order"]["checkName"] = "order_" + value.name;
+				// result[value.display]["order"]["checkValue"] = 0;
+
+				// if( props.selectedCustomer[value.name] == '' )
+				// {
+				// 	result[value.display]["order"]["checkValue"] = 1;
+				// 	result[value.display]["customer"]["checkValue"] = 0;
+				// }
 			}
 			continue;
 		}
-		if (props.selectedCustomer[value.name].toUpperCase() === check[value.name].toUpperCase()) {
-			result[value.display] = 'Match';
-		} else {
-			console.log('Mismatch',check[value.name], props.selectedCustomer[value.name]);
-			console.log(check);
-			console.log(props.selectedCustomer);
-			result[value.display] = 'Mismatch';
+		if (props.selectedCustomer[value.name].toUpperCase() != check[value.name].toUpperCase()) {
+			// result[value.display] = 'Match';
+		// } else {
+			// console.log('Mismatch',check[value.name], props.selectedCustomer[value.name]);
+			// console.log(check);
+			// console.log(props.selectedCustomer);
+			result[value.display] = {
+				"customer":props.selectedCustomer[value.name],
+				"order":check[value.name],
+				"value":props.selectedCustomer[value.name],
+				"name":value.name
+			};
+
+			// result[value.display]["customer"] = {};
+			// result[value.display]["customer"]["name"] = "Customer";
+			// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
+			// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
+			// result[value.display]["customer"]["checkValue"] = 1;
+			// result[value.display]["order"] = {};
+			// result[value.display]["order"]["name"] = "Order";
+			// result[value.display]["order"]["value"] = check[value.name];
+			// result[value.display]["order"]["checkName"] = "order_" + value.name;
+			// result[value.display]["order"]["checkValue"] = 0;
+		}
+		if( result[value.display] && props.selectedCustomer[value.name] == '' )
+		{
+			result[value.display]["value"] = check[value.name];
+			// result[value.display]["customer"]["checkValue"] = 0;
 		}
 	}
 	return result;
@@ -152,7 +252,10 @@ const closeDialog = () => {
 </script>
 
 <style scoped>
-.headline {
-	font-weight: bold;
-}
+	.compare-dialog-form {
+		flex-grow: 1.75;
+	}
+	.headline {
+		font-weight: bold;
+	}
 </style>

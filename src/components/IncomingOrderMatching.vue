@@ -36,38 +36,44 @@
 				<button @click="listDialogVisible = true;isDialogVisible = false;">New Customer</button> -->
 			</div>
 			<hr>
-			<div v-if="matches.orderQ" class="single-panel">
-				<ul>
-					<li v-for="pOrder in matches.orderQ" :key="matches.orderQ.id" @click="selectCustomer(pOrder)">
-						<span>Previous Order Match</span><br>
-						{{ pOrder.name }}<br>
-						<div v-if="pOrder.company != ''">{{ pOrder.company}}</div>
-						<div>{{ pOrder.address1 }}</div>
-						<div v-if="pOrder.address2 != ''">{{ pOrder.address2}}</div>
-						<div v-if="pOrder.address3 != ''">{{ pOrder.address3}}</div>
-						<div>{{ pOrder.csz }}</div>
-						<div v-if="pOrder.country != '' && pOrder.country != 'USA'">{{ pOrder.country }}</div>
-						<div v-if="pOrder.email != ''">{{ pOrder.email }}</div>
-					</li>
-				</ul>
-				<hr>
+			<p v-if="loading">Loading matches...</p>
+    		<p v-else-if="error">{{ error.message }}</p>
+			<div v-else-if="(matches.orderQ && matches.orderQ.length > 0) || (matches.customers && matches.customers.length > 0)">
+				<div v-if="matches.orderQ" class="single-panel">
+					<ul>
+						<li v-for="pOrder in matches.orderQ" :key="matches.orderQ.id" @click="selectCustomer(pOrder)">
+							<span>Previous Order Match</span><br>
+							{{ pOrder.name }}<br>
+							<div v-if="pOrder.company != ''">{{ pOrder.company}}</div>
+							<div>{{ pOrder.address1 }}</div>
+							<div v-if="pOrder.address2 != ''">{{ pOrder.address2}}</div>
+							<div v-if="pOrder.address3 != ''">{{ pOrder.address3}}</div>
+							<div>{{ pOrder.csz }}</div>
+							<div v-if="pOrder.country != '' && pOrder.country != 'USA'">{{ pOrder.country }}</div>
+							<div v-if="pOrder.email != ''">{{ pOrder.email }}</div>
+						</li>
+					</ul>
+					<hr>
+				</div>
+				<div v-if="matches.customers" :class="customerPanelClass">
+					<ul>
+						<li v-for="customer in matches.customers" :key="matches.customers.id" @click="selectCustomer(customer)">
+							{{ customer.name }}<br>
+							
+							<div v-if="customer.company != ''">{{ customer.company}}</div>
+							<div>{{ customer.address1 }}</div>
+							<div v-if="customer.address2 != ''">{{ customer.address2}}</div>
+							<div v-if="customer.address3 != ''">{{ customer.address3}}</div>
+							<div>{{ customer.csz }}</div>
+							<div v-if="customer.country != '' && customer.country != 'USA'">{{ customer.country }}</div>
+							<div v-if="customer.email != ''">{{ customer.email }}</div>	
+							<hr>			
+						</li>
+					</ul>
+				</div>
 			</div>
-			<div v-if="matches.customers" class="scrollable-panel">
-				<ul>
-					<li v-for="customer in matches.customers" :key="matches.customers.id" @click="selectCustomer(customer)">
-						{{ customer.name }}<br>
-						
-						<div v-if="customer.company != ''">{{ customer.company}}</div>
-						<div>{{ customer.address1 }}</div>
-						<div v-if="customer.address2 != ''">{{ customer.address2}}</div>
-						<div v-if="customer.address3 != ''">{{ customer.address3}}</div>
-						<div>{{ customer.csz }}</div>
-						<div v-if="customer.country != '' && customer.country != 'USA'">{{ customer.country }}</div>
-						<div v-if="customer.email != ''">{{ customer.email }}</div>	
-						<hr>			
-					</li>
-				</ul>
-				
+			<div v-else>
+				<p>No matches found</p>
 			</div>
 		</div>
     </div>
@@ -82,10 +88,11 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 // import DataService from "../services/data-service.js";
+// import { storeToRefs } from 'pinia'
 import { useCustomerStore } from '../stores/customer'
 const custStore = useCustomerStore();
 import CompareDialog from './CompareDialog.vue';
-
+// const { loading, error } = storeToRefs(useCustomerStore());
 const showCompareDialog = ref(false);
 const selectedCustomer = ref(null);
 const selectedIncomingOrder = ref(null);
@@ -96,8 +103,9 @@ const props = defineProps({
 		required: false
 	}
 });
-
-const params = ref({name: '', zip: '', country: '',prev_order: '',first_name: '',last_name: ''});
+const loading = ref(false);
+const error = ref(null);
+const params = ref({name: '', zip: '', country: '',prev_order: '',first_name: '',last_name: '',address1: ''});
 
 watch(
 	() => props.order,
@@ -112,6 +120,7 @@ watch(
 				params.value.country = selectedIncomingOrder.value.shippingAddress.country;
 				params.value.first_name = selectedIncomingOrder.value.shippingAddress.first_name;
 				params.value.last_name = selectedIncomingOrder.value.shippingAddress.last_name;
+				params.value.address1 = selectedIncomingOrder.value.shippingAddress.address1;
 			}
 			else
 			{
@@ -121,6 +130,7 @@ watch(
 				params.value.country = selectedIncomingOrder.value.billingAddress.country;
 				params.value.first_name = selectedIncomingOrder.value.billingAddress.first_name;
 				params.value.last_name = selectedIncomingOrder.value.billingAddress.last_name;
+				params.value.address1 = selectedIncomingOrder.value.billingAddress.address1;
 			}
 			if( selectedIncomingOrder.value.prev_orders )
 			{
@@ -146,9 +156,12 @@ watch(
 			{
 				params.value.prev_order = '';
 			}
+			loading.value = true;
 			let check = await custStore.getMatchingCustomers(params.value);
 			// console.log(check);
 			matches.value = check;
+			loading.value = false;
+
 		}
 	}
 );
@@ -159,8 +172,23 @@ const lastFilter = computed({
     },
     async set(val) {
 		params.value.last_name = val;
+		loading.value = true;
 		matches.value = await custStore.getMatchingCustomers(params.value);
+		loading.value = false;
     }
+});
+
+const customerPanelClass = computed(() => {
+	if( matches.value.orderQ && matches.value.orderQ.length == 0 )
+	{
+		return 'scrollable-panel';
+	}
+	else
+	{
+		return 'scrollable-short';
+	}
+	// return matches.value.orderQ.length > 0 ? 'scrollable-short' : 'scrollable-panel';
+
 });
 const firstFilter = computed({
 	get() {
@@ -168,7 +196,9 @@ const firstFilter = computed({
 	},
 	async set(val) {
 		params.value.first_name = val;
+		loading.value = true;
 		matches.value = await custStore.getMatchingCustomers(params.value);
+		loading.value = false;
 	}
 });
 const zipFilter = computed({
@@ -177,7 +207,9 @@ const zipFilter = computed({
     },
     async set(val) {
     	params.value.zip = val;
+		loading.value = true;
 		matches.value = await custStore.getMatchingCustomers(params.value);
+		loading.value = false;
     }
 });
 
@@ -208,7 +240,12 @@ const handleClose = (data) => {
     .scrollable-panel {
 		flex-grow: 1; /* Take up remaining space */
 		overflow-y: auto;
-		height: calc(100vh - 310px);
+		height: calc(100vh - 275px);
+	}
+	.scrollable-short {
+		flex-grow: 1; /* Take up remaining space */
+		overflow-y: auto;
+		height: calc(100vh - 375px);
 	}
 	.incoming-order-matching h2 {
 		line-height: .2;

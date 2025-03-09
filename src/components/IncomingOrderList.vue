@@ -1,7 +1,6 @@
 <template>
   <div class="incoming-order-list">
       <h2>Unprocessed Orders ({{ incoming_orders.length }})</h2>
-      
       <p v-if="loading">Loading incoming orders...</p>
       <p v-if="error">{{ error.message }}</p>
       <div v-if="incoming_orders" class="scrollable-panel">
@@ -101,9 +100,8 @@
     flex-direction: column;
   }
 
-
   .incoming-order-list h2 {
-    line-height: .5;
+    line-height: 1;
   }
 
   .incoming-order-list ul {
