@@ -1,16 +1,19 @@
 <!-- CompareDialog.vue -->
 <template>
-	<v-dialog v-model="dialog" class="compare-dialog-form">
+	<v-dialog v-model="dialog" class="compare-dialog-form" persistent>
 		<v-card>
 			<v-card-title>
-				<span class="headline">Compare Customer and Incoming Order</span>
+				<center>
+					<span v-if="Object.keys(selectedCustomer).length > 0" class="headline">Compare Customer and Incoming Order</span>
+					<span v-else class="headline">New Customer Order</span>
+				</center>
 			</v-card-title>
 			<br>
 			<v-card-actions>
 				<v-spacer></v-spacer>
 				<button color="blue darken-1" text @click="closeDialog">Close</button>
 			</v-card-actions>
-			<v-card-text>
+			<v-card-text v-if="Object.keys(comparisons).length > 0">
 				<v-container>
 					<v-row>
 						<v-col cols="24">
@@ -78,9 +81,9 @@ const compareFieldDisplayOrder = [
 	{name:"phone",display:"Phone:"}
 ]
 
-watch(dialog, (newVal) => {
-	emit('update:modelValue', newVal);
-});
+// watch(dialog, (newVal) => {
+// 	emit('update:modelValue', newVal);
+// });
 
 watch(() => props.modelValue, (newVal) => {
 	dialog.value = newVal;
@@ -90,6 +93,10 @@ const comparisons = computed(() => {
 	const result = {};
 	let check = props.selectedIncomingOrder.shippingAddress != null ? props.selectedIncomingOrder.shippingAddress : props.selectedIncomingOrder.billingAddress;
 	// console.log(props.selectedCustomer);
+	if( props.selectedCustomer == null || props.selectedCustomer == {} || Object.keys(props.selectedCustomer).length == 0 )
+	{
+		return result;
+	}
 	for (const value of compareFieldDisplayOrder) {
 		// console.log("value", value);
 		if( check[value.name] == null )
@@ -253,9 +260,19 @@ const closeDialog = () => {
 
 <style scoped>
 	.compare-dialog-form {
-		flex-grow: 1.75;
+		flex-grow: 3;
 	}
 	.headline {
 		font-weight: bold;
+	}
+	.compare-dialog-form button {
+		background-color: lightgray;
+		margin-top: 10px;
+		margin-left: 20px;
+		width: 120px;
+		align-self: center;
+		height: 25px;
+		padding: 0;
+		color: black;
 	}
 </style>

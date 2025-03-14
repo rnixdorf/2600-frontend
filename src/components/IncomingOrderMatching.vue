@@ -32,8 +32,8 @@
 					placeholder="Search Zipcode" 
 					v-model="zipFilter"
 				/>
-				<!-- <button @click="lastFilter = '';zipFilter='';companyFilter=''">Clear Search</button>
-				<button @click="listDialogVisible = true;isDialogVisible = false;">New Customer</button> -->
+				<button @click="lastFilter = '';zipFilter='';firstFilter=''">Clear Search</button>
+				<button @click="selectCustomer()">New Customer</button>
 			</div>
 			<hr>
 			<p v-if="loading">Loading matches...</p>
@@ -80,7 +80,7 @@
 	<CompareDialog
 		:selectedCustomer="selectedCustomer"
 		:selectedIncomingOrder="selectedIncomingOrder"
-		v-if="showCompareDialog"
+		:modelValue="showCompareDialog"
 		@close="handleClose"
 	/>
 </template>
@@ -94,8 +94,8 @@ const custStore = useCustomerStore();
 import CompareDialog from './CompareDialog.vue';
 // const { loading, error } = storeToRefs(useCustomerStore());
 const showCompareDialog = ref(false);
-const selectedCustomer = ref(null);
-const selectedIncomingOrder = ref(null);
+const selectedCustomer = ref({});
+const selectedIncomingOrder = ref({});
 const matches = ref({});
 const props = defineProps({
 	order: {
@@ -214,6 +214,10 @@ const zipFilter = computed({
 });
 
 const selectCustomer = (customer) => {
+	if( !customer)
+	{
+		customer = {};
+	}
 	selectedCustomer.value = customer;
 	openCompareDialog();
 }
@@ -240,12 +244,12 @@ const handleClose = (data) => {
     .scrollable-panel {
 		flex-grow: 1; /* Take up remaining space */
 		overflow-y: auto;
-		height: calc(100vh - 275px);
+		height: calc(100vh - 295px);
 	}
 	.scrollable-short {
 		flex-grow: 1; /* Take up remaining space */
 		overflow-y: auto;
-		height: calc(100vh - 375px);
+		height: calc(100vh - 395px);
 	}
 	.incoming-order-matching h2 {
 		line-height: .2;
@@ -254,7 +258,7 @@ const handleClose = (data) => {
 		/* width: 200px; */
 		background: #f5f5f5;
 		/* padding-left: 5px; */
-		flex: 1.2;
+		flex: 1.1;
 		/* text-align: left; */
 		font-weight: bold;
 	}
@@ -271,5 +275,39 @@ const handleClose = (data) => {
 	}
 	.incoming-order-matching li:hover {
 		background: #ddd;
+	}
+	.incoming-order-matching button {
+		background-color: lightgray;
+		margin-top: 10px;
+		margin-left: 20px;
+		width: 120px;
+		align-self: center;
+		height: 25px;
+		padding: 0;
+		color: black;
+	}
+	.searchLabel {
+		display: inline-block;
+		/* font-size: 1.2em; */
+		font-weight: bold;
+		width: 6em;
+		margin-left: 10px;
+	}
+
+	.searchInputs {
+		text-align: left;
+		margin-bottom: 10px;
+		margin-left: 10px;
+		padding: 10px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		background-color: #f5f5f5;
+		/* display: flex; */
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+	.search-field {
+		width: calc(100% - 9em);
 	}
 </style>
