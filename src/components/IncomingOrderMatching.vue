@@ -24,6 +24,15 @@
 					v-model="lastFilter"
 				/>
 				<br>
+				<label class="searchLabel">Address 1</label>
+				<input
+					name="addr1Search"
+					class="search-field textfield-closed"
+					type="search"
+					placeholder="Search address 1" 
+					v-model="addr1Filter"
+				/>
+				<br>
 				<label class="searchLabel">Zipcode</label>
 				<input
 					name="zipcodeSearch"
@@ -32,14 +41,23 @@
 					placeholder="Search Zipcode" 
 					v-model="zipFilter"
 				/>
+				<br>
+				<label class="searchLabel">Country</label>
+				<input
+					name="countrySearch"
+					class="search-field textfield-closed"
+					type="search"
+					placeholder="Search Country" 
+					v-model="countryFilter"
+				/>
 				<button @click="lastFilter = '';zipFilter='';firstFilter=''">Clear Search</button>
 				<button @click="selectCustomer()">New Customer</button>
 			</div>
-			<hr>
+			<!-- <hr> -->
 			<p v-if="loading">Loading matches...</p>
     		<p v-else-if="error">{{ error.message }}</p>
 			<div v-else-if="(matches.orderQ && matches.orderQ.length > 0) || (matches.customers && matches.customers.length > 0)">
-				<div v-if="matches.orderQ" class="single-panel">
+				<div v-if="matches.orderQ && matches.orderQ.length > 0" class="single-panel">
 					<ul>
 						<li v-for="pOrder in matches.orderQ" :key="matches.orderQ.id" @click="selectCustomer(pOrder)">
 							<span>Previous Order Match</span><br>
@@ -166,6 +184,30 @@ watch(
 	}
 );
 
+const countryFilter = computed({
+	get() {
+		return params.value.country;
+	},
+	async set(val) {
+		params.value.country = val;
+		loading.value = true;
+		matches.value = await custStore.getMatchingCustomers(params.value);
+		loading.value = false;
+	}
+});
+
+const addr1Filter = computed({
+	get() {
+		return params.value.address1;
+	},
+	async set(val) {
+		params.value.address1 = val;
+		loading.value = true;
+		matches.value = await custStore.getMatchingCustomers(params.value);
+		loading.value = false;
+	}
+});
+
 const lastFilter = computed({
     get() {
     	return params.value.last_name;
@@ -244,12 +286,12 @@ const handleClose = (data) => {
     .scrollable-panel {
 		flex-grow: 1; /* Take up remaining space */
 		overflow-y: auto;
-		height: calc(100vh - 295px);
+		height: calc(100vh - 349px);
 	}
 	.scrollable-short {
 		flex-grow: 1; /* Take up remaining space */
 		overflow-y: auto;
-		height: calc(100vh - 395px);
+		height: calc(100vh - 467px);
 	}
 	.incoming-order-matching h2 {
 		line-height: .2;
@@ -298,6 +340,7 @@ const handleClose = (data) => {
 		text-align: left;
 		margin-bottom: 10px;
 		margin-left: 10px;
+		margin-right: 10px;
 		padding: 10px;
 		border: 1px solid #ccc;
 		border-radius: 5px;
