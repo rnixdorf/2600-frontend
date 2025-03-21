@@ -3,44 +3,48 @@
 	<v-dialog v-model="dialog" class="compare-dialog-form" persistent>
 		<v-card>
 			<v-card-title>
+				<floating right>
+					<button  @click="closeDialog" type="submit" class="small-button-red" title="Cancel">
+            			<Icon :icon="iconCancel" />
+          			</button>
+				</floating>
 				<center>
 					<span v-if="Object.keys(selectedCustomer).length > 0" class="headline">Compare Customer and Incoming Order</span>
 					<span v-else class="headline">New Customer Order</span>
 				</center>
 			</v-card-title>
-			<br>
-			<v-card-actions>
-				<v-spacer></v-spacer>
-				<button color="blue darken-1" text @click="closeDialog">Close</button>
-			</v-card-actions>
 			<v-card-text v-if="Object.keys(comparisons).length > 0">
 				<v-container>
 					<v-row>
-						<v-col cols="24">
-							<h3>Comparison</h3>
-							<p v-for="(comparison, key) in comparisons" :key="key">
-								{{ key }}
-								<div>
-									Customer
-									<input type="radio" :value="comparison.customer" :id="'customer_'+comparison.name" :name="comparison.name" :checked="comparison.customer==comparison.value">
-									<label :for="'customer_'+comparison.name">{{comparison.customer}}</label>
-									<br>
-									Order
-									<input type="radio" :value="comparison.order" :id="'order_'+comparison.name" :name="comparison.name" :checked="comparison.order==comparison.value">
-									<label :for="'order_'+comparison.name">{{comparison.order}}</label>
-									<!-- <span v-for="comp in comparison" :key="comp.key">
-										{{ comp.name }}:
-										
-										<input type="radio" :checked="comp.checkValue" :id="comp.checkName">
-										<label :for="comp.checkName">{{ comp.value }}</label>
-
-										&emsp;
-									</span> -->
+						<v-col cols="12">
+							<div class="comparison-container">
+								<div class="comparison-left">
+									<h3>Customer</h3>
+									<p v-for="(value, key) in compareFieldDisplayOrder" :key="key">
+										<Label :for="value.name">{{ value.display }}</Label>
+										<input data-1p-ignore v-model="selectedCustomer[value.name]" :maxlength="20" @input="handleInputChange(val.name, $event.target.value)" />
+									</p>
 								</div>
-							</p>
+								<div class="comparison-right">
+									<h3>Incoming Order</h3>
+									<p v-for="(value, key) in comparisons" :key="key">
+										<Label v-if="value.order != ''">{{ value.order }}</Label>
+										<Label v-else>&nbsp;</Label>
+									</p>
+								</div>
+							</div>
+							<div class="order-lines-container">
+								<h3>Order Lines</h3>
+								<ul>
+								<li v-for="(line, index) in selectedIncomingOrder.order_lines" :key="index">
+									{{ line.quantity }} x {{ line.item }}
+								</li>
+								</ul>
+							</div>
 						</v-col>
 					</v-row>
 				</v-container>
+				
 			</v-card-text>
 		</v-card>
 	</v-dialog>
@@ -49,7 +53,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { parsePhoneNumberWithError, isValidPhoneNumber } from 'libphonenumber-js';
+import { Icon } from '@iconify/vue';
 
+const iconCancel = ref('mdi:close');
 const props = defineProps({
 	selectedCustomer: {
 		type: Object,
@@ -78,7 +84,8 @@ const compareFieldDisplayOrder = [
 	{name:"stateCode",display:"State:"},
 	{name:"zip",display:"Zip:"},
 	{name:"country",display:"Country:"},
-	{name:"phone",display:"Phone:"}
+	{name:"phone",display:"Phone:"},
+	{name:"email",display:"Email:"},
 ]
 
 // watch(dialog, (newVal) => {
@@ -107,17 +114,14 @@ const comparisons = computed(() => {
 		{
 			props.selectedCustomer[value.name] = '';
 		}
+		if( value.name == 'country' && check[value.name] == 'United States' )
+		{
+			check[value.name] = 'USA'; // normalize country name for comparison
+		}
 		if( value.name == 'phone' )
 		{
 			console.log("phone", check[value.name], props.selectedCustomer[value.name]);
-			// if( check[value.name] == '' )
-			// {
-			// 	check[value.name] = ' ';
-			// }
-			// if( props.selectedCustomer[value.name] == '' )
-			// {
-			// 	props.selectedCustomer[value.name] = ' ';
-			// }
+
 			try {
 				const checkPhone = parsePhoneNumberWithError(check[value.name], check["countryCodeV2"]);
 				const customerPhone = parsePhoneNumberWithError(props.selectedCustomer[value.name], check["countryCodeV2"]);
@@ -127,7 +131,12 @@ const comparisons = computed(() => {
 					{
 						if( checkPhone.number == customerPhone.number )
 						{
-							// result[value.display] = 'Match';
+							result[value.display] = {
+								"customer":props.selectedCustomer[value.name],
+								"order":"",
+								"value":props.selectedCustomer[value.name],
+								"name":value.name
+							};
 						}
 						else
 						{
@@ -137,17 +146,6 @@ const comparisons = computed(() => {
 								"value":props.selectedCustomer[value.name],
 								"name":value.name
 							};
-							// result[value.display] = {};
-							// result[value.display]["customer"] = {};
-							// result[value.display]["customer"]["name"] = "Customer";
-							// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
-							// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
-							// result[value.display]["customer"]["checkValue"] = 1;
-							// result[value.display]["order"] = {};
-							// result[value.display]["order"]["name"] = "Order";
-							// result[value.display]["order"]["value"] = check[value.name];
-							// result[value.display]["order"]["checkName"] = "order_" + value.name;
-							// result[value.display]["order"]["checkValue"] = 0;
 						}
 					}
 					else
@@ -158,17 +156,6 @@ const comparisons = computed(() => {
 							"value":props.selectedCustomer[value.name],
 							"name":value.name
 						};
-						// result[value.display] = {};
-						// result[value.display]["customer"] = {};
-						// result[value.display]["customer"]["name"] = "Customer";
-						// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
-						// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
-						// result[value.display]["customer"]["checkValue"] = 1;
-						// result[value.display]["order"] = {};
-						// result[value.display]["order"]["name"] = "Order";
-						// result[value.display]["order"]["value"] = check[value.name];
-						// result[value.display]["order"]["checkName"] = "order_" + value.name;
-						// result[value.display]["order"]["checkValue"] = 0;
 					}
 				}
 				else
@@ -179,17 +166,6 @@ const comparisons = computed(() => {
 						"value":props.selectedCustomer[value.name],
 						"name":value.name
 					};
-					// result[value.display] = {};
-					// result[value.display]["customer"] = {};
-					// result[value.display]["customer"]["name"] = "Customer";
-					// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
-					// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
-					// result[value.display]["customer"]["checkValue"] = 1;
-					// result[value.display]["order"] = {};
-					// result[value.display]["order"]["name"] = "Order";
-					// result[value.display]["order"]["value"] = check[value.name];
-					// result[value.display]["order"]["checkName"] = "order_" + value.name;
-					// result[value.display]["order"]["checkValue"] = 0;
 				}
 			} catch (e) {
 				console.log("error", e);
@@ -199,54 +175,29 @@ const comparisons = computed(() => {
 					"value":props.selectedCustomer[value.name],
 					"name":value.name
 				};
-				// result[value.display] = {};
-				// result[value.display]["customer"] = {};
-				// result[value.display]["customer"]["name"] = "Customer";
-				// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
-				// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
-				// result[value.display]["customer"]["checkValue"] = 1;
-				// result[value.display]["order"] = {};
-				// result[value.display]["order"]["name"] = "Order";
-				// result[value.display]["order"]["value"] = check[value.name];
-				// result[value.display]["order"]["checkName"] = "order_" + value.name;
-				// result[value.display]["order"]["checkValue"] = 0;
-
-				// if( props.selectedCustomer[value.name] == '' )
-				// {
-				// 	result[value.display]["order"]["checkValue"] = 1;
-				// 	result[value.display]["customer"]["checkValue"] = 0;
-				// }
 			}
 			continue;
 		}
 		if (props.selectedCustomer[value.name].toUpperCase() != check[value.name].toUpperCase()) {
-			// result[value.display] = 'Match';
-		// } else {
-			// console.log('Mismatch',check[value.name], props.selectedCustomer[value.name]);
-			// console.log(check);
-			// console.log(props.selectedCustomer);
 			result[value.display] = {
 				"customer":props.selectedCustomer[value.name],
 				"order":check[value.name],
 				"value":props.selectedCustomer[value.name],
 				"name":value.name
 			};
-
-			// result[value.display]["customer"] = {};
-			// result[value.display]["customer"]["name"] = "Customer";
-			// result[value.display]["customer"]["value"] = props.selectedCustomer[value.name];
-			// result[value.display]["customer"]["checkName"] = "customer_" + value.name;
-			// result[value.display]["customer"]["checkValue"] = 1;
-			// result[value.display]["order"] = {};
-			// result[value.display]["order"]["name"] = "Order";
-			// result[value.display]["order"]["value"] = check[value.name];
-			// result[value.display]["order"]["checkName"] = "order_" + value.name;
-			// result[value.display]["order"]["checkValue"] = 0;
+		}
+		else
+		{
+			result[value.display] = {
+				"customer":props.selectedCustomer[value.name],
+				"order":"",
+				"value":props.selectedCustomer[value.name],
+				"name":value.name
+			};
 		}
 		if( result[value.display] && props.selectedCustomer[value.name] == '' )
 		{
 			result[value.display]["value"] = check[value.name];
-			// result[value.display]["customer"]["checkValue"] = 0;
 		}
 	}
 	return result;
@@ -259,11 +210,29 @@ const closeDialog = () => {
 </script>
 
 <style scoped>
+	.v-card-text {
+		padding-top: 0 !important;
+	}
+	.compare-dialog-form .small-button-red {
+		padding: 1px;
+		background-color: red;
+		border: none;
+		border-radius: 20%;
+		color: white;
+		margin-right:.4em;
+		width: 25px;
+		float: right;
+		margin-top: .1em;
+	}
+	.small-button-red:hover {
+		background-color: darkred;
+	}
 	.compare-dialog-form {
 		flex-grow: 3;
 	}
 	.headline {
 		font-weight: bold;
+		width: 80%;
 	}
 	.compare-dialog-form button {
 		background-color: lightgray;
@@ -274,5 +243,70 @@ const closeDialog = () => {
 		height: 25px;
 		padding: 0;
 		color: black;
+	}
+
+	.comparison-container {
+		display: flex;
+		/* justify-content: space-between; */
+		margin-bottom: 1rem;
+	}
+
+	.comparison-left, .comparison-right {
+		width: 47%;
+	}
+	.comparison-left h3 {
+		padding-left: 1em;
+		margin-top: .1em;
+		margin-bottom: .5em;
+	}
+	.comparison-right h3 {
+		padding-left: 1em;
+		margin-top: .1em;
+		margin-bottom: .9em;
+	}
+	.comparison-left {
+		float: left;
+		/* line-height: .5em; */
+		border: 1px solid black;
+	}
+	
+	.comparison-left label {
+		/* display: inline-block; */
+		text-transform: capitalize;
+		float: left;
+		text-align: right;
+		width: 6em;
+		margin-bottom: .2em;
+		line-height: 1em;
+	}
+	.comparison-left input {
+		/* display: inline-block; */
+		float: left;
+		margin-left: 1em;
+		width: calc(100% - 12em);  /*75%;*/
+		font-weight: bold;
+		margin-bottom: .5em;
+	}
+	.comparison-right {
+		/* float: right; */
+		/* line-height: 1em; */
+		border: 1px solid black;
+		margin-left: 2em;
+	}
+	.comparison-right label {
+		/* margin-bottom: .2em; */
+		text-align: left;
+		padding-left: 1em;
+		font-weight: bold;
+		line-height: 1.1em;
+	}
+	.comparison-right p {
+		margin-bottom: .62em;
+		margin-top: .5em;
+		font-weight: bold;
+		line-height: .9em;
+	}
+	.order-lines-container {
+		margin-top: 1rem;
 	}
 </style>

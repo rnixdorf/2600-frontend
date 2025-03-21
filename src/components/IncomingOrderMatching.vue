@@ -221,7 +221,7 @@ const lastFilter = computed({
 });
 
 const customerPanelClass = computed(() => {
-	if( matches.value.orderQ && matches.value.orderQ.length == 0 )
+	if( !matches.value.orderQ || (matches.value.orderQ && matches.value.orderQ.length == 0 ))
 	{
 		return 'scrollable-panel';
 	}
