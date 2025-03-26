@@ -3,15 +3,15 @@
 	<v-dialog v-model="dialog" class="compare-dialog-form" persistent>
 		<v-card>
 			<v-card-title>
-				<floating right>
+				<!-- <floating right> -->
 					<button  @click="closeDialog" type="submit" class="small-button-red" title="Cancel">
             			<Icon :icon="iconCancel" />
           			</button>
-				</floating>
-				<center>
+				<!-- </floating> -->
+				<!-- <AlignCenter> -->
 					<span v-if="Object.keys(selectedCustomer).length > 0" class="headline">Compare Customer and Incoming Order</span>
 					<span v-else class="headline">New Customer Order</span>
-				</center>
+				<!-- </AlignCenter> -->
 			</v-card-title>
 			<v-card-text v-if="Object.keys(comparisons).length > 0">
 				<v-container>
@@ -21,15 +21,15 @@
 								<div class="comparison-left">
 									<h3>Customer</h3>
 									<p v-for="(value, key) in compareFieldDisplayOrder" :key="key">
-										<Label :for="value.name">{{ value.display }}</Label>
+										<label :for="value.name">{{ value.display }}</label>
 										<input data-1p-ignore v-model="selectedCustomer[value.name]" :maxlength="20" @input="handleInputChange(val.name, $event.target.value)" />
 									</p>
 								</div>
 								<div class="comparison-right">
 									<h3>Incoming Order</h3>
 									<p v-for="(value, key) in comparisons" :key="key">
-										<Label v-if="value.order != ''">{{ value.order }}</Label>
-										<Label v-else>&nbsp;</Label>
+										<label v-if="value.order != ''">{{ value.order }}</label>
+										<label v-else>&nbsp;</label>
 									</p>
 								</div>
 							</div>
@@ -41,6 +41,13 @@
 								</li>
 								</ul>
 							</div>
+							<div>
+								<SubscriptionListComp :customer="selectedCustomer" />
+							</div>
+							<div >
+            					<IssueDialog v-if="Object.keys(selectedCustomer).length > 0" :data="dialogData" /> 
+								<!-- @submit-issue="newSubCustomer" /> -->
+        					</div>
 						</v-col>
 					</v-row>
 				</v-container>
@@ -54,7 +61,12 @@
 import { ref, computed, watch } from 'vue';
 import { parsePhoneNumberWithError, isValidPhoneNumber } from 'libphonenumber-js';
 import { Icon } from '@iconify/vue';
+import IssueDialog from './IssueDialog.vue';
+import SubscriptionListComp from './SubscriptionListComp.vue';
+// import { AlignCenter } from 'lucide-vue-next';
 
+
+const dialogData = ref({});
 const iconCancel = ref('mdi:close');
 const props = defineProps({
 	selectedCustomer: {
@@ -93,6 +105,7 @@ const compareFieldDisplayOrder = [
 // });
 
 watch(() => props.modelValue, (newVal) => {
+	dialogData.value = props.selectedCustomer;
 	dialog.value = newVal;
 });
 
@@ -233,6 +246,7 @@ const closeDialog = () => {
 	.headline {
 		font-weight: bold;
 		width: 80%;
+		align-self: center;
 	}
 	.compare-dialog-form button {
 		background-color: lightgray;
